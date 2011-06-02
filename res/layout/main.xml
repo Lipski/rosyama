@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <Button
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:id="@+id/make_photo"
+        android:text="Сделать фотографию"
+    />
+    <TextView
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:text="Координаты дефекта"
+    />
+    <EditText
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:id="@+id/coordinates"
+        android:text="61.261818,55.155332"
+    /> 
+    <TextView
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:text="Адрес дефекта"
+    />
+    <EditText
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:id="@+id/address"
+    /> 
+    <TextView
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:text="Комментарий"
+    />
+    <EditText
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:id="@+id/comment"
+    /> 
+    <Button
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:id="@+id/send"
+        android:text="Отправить"
+    />
+</LinearLayout>
