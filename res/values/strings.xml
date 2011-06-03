@@ -8,9 +8,11 @@
     <string name="preferences">Настройки</string>
     <string name="auth_fail">Не удалось авторизоваться</string>
     <string name="add_fail">Не удалось отправить яму</string>
+    <string name="pdf_fail">Не сформировать заявление. Попробуйте зайти через сайт.</string>
     <string name="photo">Сфотографировать</string>
     <string name="send">Отправить</string>
     <string name="get">Получить заявление</string>
+    <string name="email">Отправка заявления</string>
     <string name="cancel">Отмена</string>
     <string name="login_key">login</string>
     <string name="password_key">password</string>

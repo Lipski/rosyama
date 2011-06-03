@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Toast;
 
 public class Main extends Activity implements OnClickListener {
 	private static final String SAVED_REQUESTED_URI = "SAVED_REQUESTED_URI";
@@ -108,6 +109,20 @@ public class Main extends Activity implements OnClickListener {
 			startActivity(intent);
 			break;
 		case R.id.get:
+			if (((Rosyama) getApplication()).pdf()) {
+				intent = new Intent(android.content.Intent.ACTION_SEND);
+				intent.setType("text/plain");
+				Uri uri = Uri.fromFile(new File(((Rosyama) getApplication())
+						.getPdf()));
+				System.out.println(uri.getPath());
+				System.out.println(uri);
+				intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
+				startActivity(Intent.createChooser(intent,
+						getString(R.string.email)));
+			} else {
+				Toast.makeText(this, getString(R.string.pdf_fail),
+						Toast.LENGTH_LONG).show();
+			}
 			break;
 		}
 	}
