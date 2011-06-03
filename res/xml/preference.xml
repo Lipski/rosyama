@@ -2,12 +2,12 @@
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
-        android:key="login"
-        android:title="Логин"
+        android:key="@string/login_key"
+        android:title="@string/login"
     />
     <EditTextPreference
         android:password="true"
-        android:key="password"
-        android:title="Пароль"
+        android:key="@string/password_key"
+        android:title="@string/password"
     />
 </PreferenceScreen>

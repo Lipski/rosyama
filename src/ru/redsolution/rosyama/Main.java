@@ -87,8 +87,8 @@ public class Main extends Activity implements OnClickListener {
 		super.onResume();
 		SharedPreferences settings = PreferenceManager
 				.getDefaultSharedPreferences(getBaseContext());
-		login = settings.getString("login", "");
-		password = settings.getString("password", "");
+		login = settings.getString(getString(R.string.login_key), "");
+		password = settings.getString(getString(R.string.password_key), "");
 	}
 
 	@Override

@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, Main!</string>
     <string name="app_name">РосЯма</string>
+    <string name="login">Логин</string>
+    <string name="password">Пароль</string>
+    <string name="enter">Вход</string>
+    <string name="register">Регистрация</string>
+    <string name="auth_fail">Не удалось авторизоваться</string>
+    <string name="add_fail">Не удалось отправить яму</string>
+    <string name="login_key">login</string>
+    <string name="password_key">password</string>
 </resources>
