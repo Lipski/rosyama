@@ -57,6 +57,9 @@ public class Main extends Activity implements OnClickListener {
 		login = settings.getString(getString(R.string.login_key), "");
 		password = settings.getString(getString(R.string.password_key), "");
 		if ("".equals(login) && "".equals(password)) {
+			Intent intent = new Intent(this, Login.class);
+			startActivity(intent);
+			finish();
 		}
 	}
 
