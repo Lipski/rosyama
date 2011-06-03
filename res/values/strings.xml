@@ -5,6 +5,7 @@
     <string name="password">Пароль</string>
     <string name="enter">Вход</string>
     <string name="register">Регистрация</string>
+    <string name="preferences">Настройки</string>
     <string name="auth_fail">Не удалось авторизоваться</string>
     <string name="add_fail">Не удалось отправить яму</string>
     <string name="login_key">login</string>

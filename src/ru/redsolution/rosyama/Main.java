@@ -114,7 +114,8 @@ public class Main extends Activity implements OnClickListener {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		menu.add(0, OPTION_MENU_PREFERENCE_ID, 0, "Настройки").setIcon(
+		menu.add(0, OPTION_MENU_PREFERENCE_ID, 0,
+				getString(R.string.preferences)).setIcon(
 				android.R.drawable.ic_menu_preferences);
 		return true;
 	}
@@ -124,7 +125,7 @@ public class Main extends Activity implements OnClickListener {
 		super.onOptionsItemSelected(item);
 		switch (item.getItemId()) {
 		case OPTION_MENU_PREFERENCE_ID:
-			Intent intent = new Intent(this, Preference.class);
+			Intent intent = new Intent(this, Preferences.class);
 			startActivity(intent);
 			return true;
 		}

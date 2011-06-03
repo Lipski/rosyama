@@ -5,12 +5,12 @@ import android.preference.EditTextPreference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 
-public class Preference extends PreferenceActivity implements
+public class Preferences extends PreferenceActivity implements
 		OnPreferenceChangeListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		addPreferencesFromResource(R.xml.preference);
+		addPreferencesFromResource(R.xml.preferences);
 		EditTextPreference preference = (EditTextPreference) findPreference(getString(R.string.login_key));
 		preference.setOnPreferenceChangeListener(this);
 		preference.setSummary(preference.getText());
