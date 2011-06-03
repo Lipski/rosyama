@@ -1,33 +1,7 @@
 package ru.redsolution.rosyama;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -45,20 +19,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class Main extends Activity implements OnClickListener {
-	private static final Pattern CSRF = Pattern.compile(
-			".*name=\'csrfmiddlewaretoken\' value=\'(.+)\'.*", Pattern.DOTALL);
-	private final static SimpleDateFormat FILE_NAME_FORMAT = new SimpleDateFormat(
-			"yyyy-MM-dd-HH-mm-ss");
-	private static final String LOGIN = "http://rosyama.ru/personal/holes.php";
-	private static final String ACTION = "http://rosyama.ru/personal/add.php";
 	private static final String SAVED_REQUESTED_URI = "SAVED_REQUESTED_URI";
 
 	private static final int OPTION_MENU_PREFERENCE_ID = 1;
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 0;
 
-	private DefaultHttpClient client;
 	private Uri requestedUri;
 	private String login;
 	private String password;
@@ -71,14 +39,13 @@ public class Main extends Activity implements OnClickListener {
 		findViewById(R.id.send).setOnClickListener(this);
 
 		requestedUri = Uri
-				.fromFile(new File("/sdcard/2011-06-02-13-08-09.jpg"));
+				.fromFile(new File("/sdcard/2011-06-02-21-20-24.jpg"));
 		if (savedInstanceState != null) {
 			String stringUri = savedInstanceState
 					.getString(SAVED_REQUESTED_URI);
 			if (stringUri != null)
 				requestedUri = Uri.parse(stringUri);
 		}
-		client = new DefaultHttpClient();
 		findViewById(R.id.send).setEnabled(requestedUri != null);
 	}
 
@@ -89,15 +56,8 @@ public class Main extends Activity implements OnClickListener {
 				.getDefaultSharedPreferences(getBaseContext());
 		login = settings.getString(getString(R.string.login_key), "");
 		password = settings.getString(getString(R.string.password_key), "");
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		// When HttpClient instance is no longer needed,
-		// shut down the connection manager to ensure
-		// immediate deallocation of all system resources
-		client.getConnectionManager().shutdown();
+		if ("".equals(login) && "".equals(password)) {
+		}
 	}
 
 	@Override
@@ -137,11 +97,12 @@ public class Main extends Activity implements OnClickListener {
 					best = gps;
 				if (best != null)
 					((EditText) findViewById(R.id.coordinates))
-							.setText(Location.convert(best.getLatitude(),
+							.setText(Location.convert(best.getLongitude(),
 									Location.FORMAT_DEGREES).replace(',', '.')
 									+ ","
-									+ Location.convert(best.getLongitude(),
-											Location.FORMAT_DEGREES));
+									+ Location.convert(best.getLatitude(),
+											Location.FORMAT_DEGREES).replace(
+											',', '.'));
 			}
 			break;
 		}
@@ -177,106 +138,28 @@ public class Main extends Activity implements OnClickListener {
 			startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 			break;
 		case R.id.send:
-			login();
+			if (!((Rosyama) getApplication()).login(login, password)) {
+				Toast.makeText(this, getString(R.string.auth_fail),
+						Toast.LENGTH_LONG).show();
+				break;
+			}
+			if (!((Rosyama) getApplication()).add(requestedUri.getPath(),
+					((EditText) findViewById(R.id.address)).getText()
+							.toString(),
+					((EditText) findViewById(R.id.comment)).getText()
+							.toString(),
+					((EditText) findViewById(R.id.coordinates)).getText()
+							.toString())) {
+				Toast.makeText(this, getString(R.string.add_fail),
+						Toast.LENGTH_LONG).show();
+				break;
+			}
 			break;
 		}
 	}
 
 	private Uri getNextUri(String extention) {
 		return Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
-				FILE_NAME_FORMAT.format(new Date()) + extention));
-	}
-
-	private boolean login() {
-		BufferedReader in = null;
-		HttpGet get;
-		HttpPost post;
-		HttpResponse response;
-		HttpEntity entity;
-		String content;
-		String csrf;
-		Matcher matcher;
-		try {
-			get = new HttpGet(LOGIN);
-			response = client.execute(get);
-			System.out.println("Login form get: " + response.getStatusLine());
-			entity = response.getEntity();
-			content = EntityUtils.toString(entity);
-			matcher = CSRF.matcher(content);
-			if (matcher.matches())
-				csrf = matcher.group(1);
-			else
-				csrf = null;
-			System.out.println("csrf: " + csrf);
-			if (entity != null)
-				entity.consumeContent();
-
-			post = new HttpPost(LOGIN);
-			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-
-			nameValuePairs.add(new BasicNameValuePair("AUTH_FORM", "Y"));
-			nameValuePairs.add(new BasicNameValuePair("TYPE", "AUTH"));
-			nameValuePairs.add(new BasicNameValuePair("backurl",
-					"/personal/holes.php"));
-			nameValuePairs.add(new BasicNameValuePair("USER_LOGIN", login));
-			nameValuePairs
-					.add(new BasicNameValuePair("USER_PASSWORD", password));
-			if (csrf != null)
-				nameValuePairs.add(new BasicNameValuePair(
-						"csrfmiddlewaretoken", csrf));
-			post.setEntity(new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8));
-			response = client.execute(post);
-			System.out.println("Login form post: " + response.getStatusLine());
-			entity = response.getEntity();
-			if (entity != null)
-				System.out.println(EntityUtils.toString(entity));
-			if (entity != null)
-				entity.consumeContent();
-
-			post = new HttpPost(ACTION);
-			File file = new File(requestedUri.getPath());
-
-			MultipartEntity multipartEntity = new MultipartEntity(
-					HttpMultipartMode.STRICT, null, Charset.forName(HTTP.UTF_8));
-			ContentBody contentBody = new FileBody(file, "image/jpeg");
-			multipartEntity.addPart("PHOTOS_0", contentBody);
-			multipartEntity.addPart("ID", new StringBody("0"));
-			multipartEntity.addPart("TYPE", new StringBody("holeonroad"));
-			multipartEntity.addPart("ADDRESS", new StringBody(
-					((EditText) findViewById(R.id.address)).getText()
-							.toString()));
-			multipartEntity.addPart("COMMENT", new StringBody(
-					((EditText) findViewById(R.id.comment)).getText()
-							.toString()));
-			multipartEntity.addPart("COORDINATES", new StringBody(
-					((EditText) findViewById(R.id.coordinates)).getText()
-							.toString()));
-			post.setEntity(multipartEntity);
-			response = client.execute(post);
-			System.out.println("File form post: " + post.getRequestLine());
-			entity = response.getEntity();
-			if (entity != null)
-				System.out.println(EntityUtils.toString(entity));
-			if (entity != null)
-				entity.consumeContent();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-			return false;
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return true;
+				Rosyama.FILE_NAME_FORMAT.format(new Date()) + extention));
 	}
 }
