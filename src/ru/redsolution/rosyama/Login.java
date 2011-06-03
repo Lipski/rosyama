@@ -2,10 +2,8 @@ package ru.redsolution.rosyama;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
@@ -21,21 +19,15 @@ public class Login extends Activity implements OnClickListener {
 	}
 
 	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
+	public void onClick(View view) {
+		Intent intent;
+		switch (view.getId()) {
 		case R.id.enter:
-			String login = ((EditText) findViewById(R.id.login)).getText()
-					.toString();
-			String password = ((EditText) findViewById(R.id.password))
-					.getText().toString();
-			if (((Rosyama) getApplication()).login(login, password)) {
-				SharedPreferences settings = PreferenceManager
-						.getDefaultSharedPreferences(getBaseContext());
-				SharedPreferences.Editor editor = settings.edit();
-				editor.putString(getString(R.string.login_key), login);
-				editor.putString(getString(R.string.password_key), password);
-				editor.commit();
-				Intent intent = new Intent(this, Main.class);
+			if (((Rosyama) getApplication()).login(
+					((EditText) findViewById(R.id.login)).getText().toString(),
+					((EditText) findViewById(R.id.password)).getText()
+							.toString())) {
+				intent = new Intent(this, Main.class);
 				startActivity(intent);
 				finish();
 			} else {
@@ -44,10 +36,10 @@ public class Login extends Activity implements OnClickListener {
 			}
 			break;
 		case R.id.register:
-			Intent browserIntent = new Intent(
+			intent = new Intent(
 					Intent.ACTION_VIEW,
 					Uri.parse("http://rosyama.ru/personal/holes.php?register=yes"));
-			startActivity(browserIntent);
+			startActivity(intent);
 			break;
 		}
 	}

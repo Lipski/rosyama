@@ -32,6 +32,10 @@ import org.apache.http.util.EntityUtils;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.location.Location;
+import android.location.LocationManager;
+import android.preference.PreferenceManager;
 
 public class Rosyama extends Application {
 	private static final Pattern CSRF_PATTERN = Pattern.compile(
@@ -55,7 +59,7 @@ public class Rosyama extends Application {
 					.put(field, Pattern.compile(
 							String.format(PDF_PATTERN_TEMPLATE, field),
 							Pattern.DOTALL));
-			System.out.print(Pattern.compile(String.format(
+			System.out.println(Pattern.compile(String.format(
 					PDF_PATTERN_TEMPLATE, field)));
 		}
 	}
@@ -67,21 +71,147 @@ public class Rosyama extends Application {
 	public final static SimpleDateFormat FILE_NAME_FORMAT = new SimpleDateFormat(
 			"yyyy-MM-dd-HH-mm-ss");
 
+	/**
+	 * CSRF for this session.
+	 */
 	private String csrf;
+
+	/**
+	 * Used client.
+	 */
 	private DefaultHttpClient client;
+
+	/**
+	 * Used login.
+	 */
+	private String login;
+
+	/**
+	 * Used password.
+	 */
+	private String password;
+
+	/**
+	 * Used path to the photo.
+	 */
+	private String path;
+
+	/**
+	 * Used location.
+	 */
+	private Location location;
+
+	/**
+	 * Used hole's id.
+	 */
+	private String id;
+
+	/**
+	 * Settings.
+	 */
+	private SharedPreferences settings;
 
 	public Rosyama() {
 		csrf = null;
 		client = null;
+		login = null;
+		password = null;
+		path = "/sdcard/2011-06-02-21-20-24.jpg";
+		location = null;
+		id = null;
 	}
 
-	private void shutdown() {
-		if (client != null) {
-			client.getConnectionManager().shutdown();
-			client = null;
-		}
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		settings = PreferenceManager
+				.getDefaultSharedPreferences(getBaseContext());
+		login = settings.getString(getString(R.string.login_key), "");
+		password = settings.getString(getString(R.string.password_key), "");
 	}
 
+	/**
+	 * Whether there login was set.
+	 * 
+	 * @return
+	 */
+	public boolean hasLogin() {
+		return !"".equals(login);
+	}
+
+	/**
+	 * Sets path to the photo.
+	 * 
+	 * @param path
+	 */
+	public void setPhoto(String path) {
+		this.path = path;
+		this.id = null;
+
+		Location gps = ((LocationManager) getSystemService(Context.LOCATION_SERVICE))
+				.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
+		Location net = ((LocationManager) getSystemService(Context.LOCATION_SERVICE))
+				.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER);
+		Location best = net;
+		if (gps != null && net != null) {
+			if (gps.getTime() > net.getTime())
+				best = gps;
+			else if (net.hasAccuracy()) {
+				float[] results = new float[1];
+				Location.distanceBetween(net.getLatitude(), net.getLongitude(),
+						gps.getLatitude(), gps.getLongitude(), results);
+				if (results[0] < net.getAccuracy())
+					best = gps;
+			}
+
+		} else if (net == null)
+			best = gps;
+		setPosition(best);
+	}
+
+	/**
+	 * Whether there is selected photo.
+	 * 
+	 * @return
+	 */
+	public boolean hasPhoto() {
+		return path != null;
+	}
+
+	/**
+	 * Sets location.
+	 * 
+	 * @param location
+	 */
+	public void setPosition(Location location) {
+		this.location = location;
+	}
+
+	/**
+	 * Whether there is selected photo.
+	 * 
+	 * @return
+	 */
+	public boolean hasId() {
+		return id != null;
+	}
+
+	/**
+	 * Logins with current login and password.
+	 * 
+	 * @return
+	 */
+	public boolean login() {
+		return login(login, password);
+	}
+
+	/**
+	 * Logins with new login and password. Save login and password on success.
+	 * 
+	 * @param login
+	 * @param password
+	 * @return
+	 */
 	public boolean login(String login, String password) {
 		client = new DefaultHttpClient();
 		HttpGet get;
@@ -111,9 +241,11 @@ public class Rosyama extends Application {
 				nameValuePairs.add(new BasicNameValuePair("TYPE", "AUTH"));
 				nameValuePairs.add(new BasicNameValuePair("backurl",
 						"/personal/holes.php"));
+				System.out.println(login + ":" + password);
 				nameValuePairs.add(new BasicNameValuePair("USER_LOGIN", login));
 				nameValuePairs.add(new BasicNameValuePair("USER_PASSWORD",
 						password));
+				nameValuePairs.add(new BasicNameValuePair("Login", "Войти"));
 			} else {
 				nameValuePairs.add(new BasicNameValuePair(
 						"csrfmiddlewaretoken", csrf));
@@ -121,7 +253,11 @@ public class Rosyama extends Application {
 				nameValuePairs
 						.add(new BasicNameValuePair("PASSWORD", password));
 			}
-			post.setEntity(new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8));
+			UrlEncodedFormEntity encodedFormEntity = new UrlEncodedFormEntity(
+					nameValuePairs, HTTP.UTF_8);
+			System.out.println(EntityUtils.toString(encodedFormEntity));
+			System.out.println(EntityUtils.toString(encodedFormEntity));
+			post.setEntity(encodedFormEntity);
 			response = client.execute(post);
 			System.out.println("Login form post: " + response.getStatusLine());
 			entity = response.getEntity();
@@ -141,14 +277,21 @@ public class Rosyama extends Application {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		if (done)
+		if (done) {
+			this.login = login;
+			this.password = password;
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putString(getString(R.string.login_key), login);
+			editor.putString(getString(R.string.password_key), password);
+			editor.commit();
 			return true;
-		shutdown();
-		return false;
+		} else {
+			shutdown();
+			return false;
+		}
 	}
 
-	public boolean add(String path, String address, String comment,
-			String coordinates) {
+	public boolean add(String address, String comment) {
 		HttpPost post;
 		HttpResponse response;
 		HttpEntity entity;
@@ -165,6 +308,11 @@ public class Rosyama extends Application {
 			String type = "holeonroad";
 			String adr_subjectrf = "Челябинская область";
 			String adr_city = "Челябинск";
+			String coordinates = Location.convert(location.getLongitude(),
+					Location.FORMAT_DEGREES).replace(',', '.')
+					+ ","
+					+ Location.convert(location.getLatitude(),
+							Location.FORMAT_DEGREES).replace(',', '.');
 			System.out.println("id: " + ID);
 			System.out.println("type: " + type);
 			System.out.println("address: " + address);
@@ -219,5 +367,16 @@ public class Rosyama extends Application {
 			return true;
 		shutdown();
 		return false;
+	}
+
+	/**
+	 * Close connection.
+	 */
+	private void shutdown() {
+		if (client != null) {
+			client.getConnectionManager().shutdown();
+			client = null;
+			csrf = null;
+		}
 	}
 }
