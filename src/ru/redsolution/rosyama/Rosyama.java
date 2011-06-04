@@ -43,6 +43,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 
 public class Rosyama extends Application {
@@ -151,7 +152,7 @@ public class Rosyama extends Application {
 	/**
 	 * Result pdf file.
 	 */
-	private String pdf;
+	private File pdf;
 
 	public Rosyama() {
 		csrf = null;
@@ -344,7 +345,7 @@ public class Rosyama extends Application {
 	 * 
 	 * @return
 	 */
-	public String getPdf() {
+	public File getPdf() {
 		return pdf;
 	}
 
@@ -598,8 +599,9 @@ public class Rosyama extends Application {
 			System.out.println("PDF form post: " + response.getStatusLine());
 			entity = response.getEntity();
 			if (entity != null) {
-				pdf = id + ".pdf";
-				stream = openFileOutput(pdf, Context.MODE_WORLD_WRITEABLE);
+				pdf = new File(Environment.getExternalStorageDirectory(), id
+						+ ".pdf");
+				stream = new FileOutputStream(pdf);
 				entity.writeTo(stream);
 				done = true;
 			}
