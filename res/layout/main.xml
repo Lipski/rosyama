@@ -3,33 +3,32 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:id="@+id/root"
+    android:background="@drawable/background"
     >
 	<LinearLayout
 	    android:orientation="vertical"
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
        	android:layout_weight="1"
+        android:gravity="center"
 	    >
-	    <RelativeLayout
-	    	android:layout_height="fill_parent"
+	    <ImageView
+	    	android:layout_height="wrap_content"
 	    	android:layout_width="wrap_content"
 	    	android:layout_weight="1"
-    	>
-		    <ImageView
-		    	android:layout_height="wrap_content"
-		    	android:layout_width="wrap_content"
-		    	android:scaleType="fitXY"
-		    	android:adjustViewBounds="true"
-		    	android:layout_centerInParent="true"
-		       	android:clickable="true"
-		       	android:id="@+id/photo"
-	        	android:src="@drawable/red"/>
-		</RelativeLayout>
+	    	android:scaleType="fitXY"
+	    	android:adjustViewBounds="true"
+	       	android:clickable="true"
+	       	android:id="@+id/photo"
+        	android:src="@drawable/red"
+        />
 	    <TextView
 	    	android:layout_width="fill_parent"
 	    	android:layout_height="fill_parent"
         	android:layout_weight="3" 
         	android:gravity="center_horizontal" 
+            android:id="@+id/photo_label"
 	    	android:text="@string/photo"
 	    	android:textColor="?android:attr/textColorPrimary"
 	    />
@@ -39,27 +38,24 @@
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
        	android:layout_weight="1" 
+        android:gravity="center"
 	    >
-	    <RelativeLayout
-	    	android:layout_height="fill_parent"
-	    	android:layout_width="wrap_content"
-	    	android:layout_weight="1"
-    	>
-		    <ImageView
-		    	android:layout_height="wrap_content"
-		    	android:layout_width="wrap_content"
-		    	android:scaleType="fitXY"
-		    	android:adjustViewBounds="true"
-		    	android:layout_centerInParent="true"
-		       	android:clickable="true"
-		       	android:id="@+id/send"
-	        	android:src="@drawable/yellow"/>
-		</RelativeLayout>
+        <ImageView
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_weight="1" 
+            android:scaleType="fitXY"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:id="@+id/send"
+            android:src="@drawable/yellow"
+        />
 	    <TextView
 	    	android:layout_width="fill_parent"
 	    	android:layout_height="fill_parent"
         	android:layout_weight="3"
         	android:gravity="center_horizontal" 
+            android:id="@+id/send_label"
 	    	android:text="@string/send"
 	    	android:textColor="?android:attr/textColorPrimary"
 	    />
@@ -69,27 +65,24 @@
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
        	android:layout_weight="1" 
+        android:gravity="center"
 	    >
-	    <RelativeLayout
-	    	android:layout_height="fill_parent"
-	    	android:layout_width="wrap_content"
-	    	android:layout_weight="1"
-    	>
-		    <ImageView
-		    	android:layout_height="wrap_content"
-		    	android:layout_width="wrap_content"
-		    	android:scaleType="fitXY"
-		    	android:adjustViewBounds="true"
-		    	android:layout_centerInParent="true"
-		       	android:clickable="true"
-		       	android:id="@+id/get"
-	        	android:src="@drawable/green"/>
-		</RelativeLayout>
+        <ImageView
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:scaleType="fitXY"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:id="@+id/get"
+            android:src="@drawable/green"
+        />
 	    <TextView
 	    	android:layout_width="fill_parent"
 	    	android:layout_height="fill_parent"
         	android:layout_weight="3"
         	android:gravity="center_horizontal" 
+            android:id="@+id/get_label"
 	    	android:text="@string/get"
 	    	android:textColor="?android:attr/textColorPrimary"
 	    />
