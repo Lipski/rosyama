@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Date;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,11 +16,16 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Toast;
 
-public class Main extends Activity implements OnClickListener {
+public class Main extends Activity implements OnClickListener,
+		DialogClickListener {
 	private static final String SAVED_REQUESTED_URI = "SAVED_REQUESTED_URI";
 
 	private static final int OPTION_MENU_PREFERENCE_ID = 1;
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 0;
+
+	private static final int DIALOG_PHOTO_ID = 0;
+	private static final int DIALOG_SEND_ID = 1;
+	private static final int DIALOG_GET_ID = 2;
 
 	private Uri requestedUri;
 
@@ -27,9 +33,8 @@ public class Main extends Activity implements OnClickListener {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		findViewById(R.id.photo).setOnClickListener(this);
-		findViewById(R.id.send).setOnClickListener(this);
-		findViewById(R.id.get).setOnClickListener(this);
+		for (int id : new int[] { R.id.photo, R.id.send, R.id.get })
+			findViewById(id).setOnClickListener(this);
 		requestedUri = null;
 		if (savedInstanceState != null) {
 			String stringUri = savedInstanceState
@@ -37,6 +42,8 @@ public class Main extends Activity implements OnClickListener {
 			if (stringUri != null)
 				requestedUri = Uri.parse(stringUri);
 		}
+		// ((Rosyama) getApplication())
+		// .setPhoto("/mnt/sdcard/2011-06-02-21-20-24.jpg");
 	}
 
 	@Override
@@ -95,19 +102,67 @@ public class Main extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		Intent intent;
 		switch (v.getId()) {
 		case R.id.photo:
+			showDialog(DIALOG_PHOTO_ID);
+			break;
+		case R.id.send:
+			showDialog(DIALOG_SEND_ID);
+			break;
+		case R.id.get:
+			showDialog(DIALOG_GET_ID);
+			break;
+		}
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		super.onCreateDialog(id);
+		switch (id) {
+		case DIALOG_PHOTO_ID:
+			return new DialogBuilder(this, this, DIALOG_PHOTO_ID,
+					getString(R.string.photo_help)).create();
+		case DIALOG_SEND_ID:
+			return new DialogBuilder(this, this, DIALOG_SEND_ID,
+					getString(R.string.send_help)).create();
+		case DIALOG_GET_ID:
+			return new DialogBuilder(this, this, DIALOG_GET_ID,
+					getString(R.string.get_help)).create();
+		default:
+			return null;
+		}
+	}
+
+	private Uri getNextUri(String extention) {
+		return Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
+				Rosyama.FILE_NAME_FORMAT.format(new Date()) + extention));
+	}
+
+	private void enables() {
+		findViewById(R.id.send).setEnabled(
+				((Rosyama) getApplication()).hasPhoto());
+		findViewById(R.id.send_label).setEnabled(
+				((Rosyama) getApplication()).hasPhoto());
+		findViewById(R.id.get).setEnabled(((Rosyama) getApplication()).hasId());
+		findViewById(R.id.get_label).setEnabled(
+				((Rosyama) getApplication()).hasId());
+	}
+
+	@Override
+	public void onAccept(DialogBuilder dialog) {
+		Intent intent;
+		switch (dialog.getDialogId()) {
+		case DIALOG_PHOTO_ID:
 			requestedUri = getNextUri(".jpg");
 			intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, requestedUri);
 			startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 			break;
-		case R.id.send:
+		case DIALOG_SEND_ID:
 			intent = new Intent(this, Address.class);
 			startActivity(intent);
 			break;
-		case R.id.get:
+		case DIALOG_GET_ID:
 			if (((Rosyama) getApplication()).pdf()) {
 				intent = new Intent(android.content.Intent.ACTION_SEND);
 				intent.setType("text/plain");
@@ -126,14 +181,11 @@ public class Main extends Activity implements OnClickListener {
 		}
 	}
 
-	private Uri getNextUri(String extention) {
-		return Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
-				Rosyama.FILE_NAME_FORMAT.format(new Date()) + extention));
+	@Override
+	public void onDecline(DialogBuilder dialog) {
 	}
 
-	private void enables() {
-		findViewById(R.id.send).setEnabled(
-				((Rosyama) getApplication()).hasPhoto());
-		findViewById(R.id.get).setEnabled(((Rosyama) getApplication()).hasId());
+	@Override
+	public void onCancel(DialogBuilder dialog) {
 	}
 }

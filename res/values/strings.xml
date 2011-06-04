@@ -12,6 +12,9 @@
     <string name="photo">Сфотографировать</string>
     <string name="send">Отправить</string>
     <string name="get">Получить заявление</string>
+    <string name="photo_help">Сделайте фотографию и мы постараемся определить её адрес.</string>
+    <string name="send_help">Проверьте адрес и мы отправим заявку на сайт rosyama.ru</string>
+    <string name="get_help">Мы загрузим заявление в формате PDF. Вы сможете отправить его на свою электронную почту. Не забудьте заполнить ваш адрес в личном кабинете на сайте rosyama.ru</string>
     <string name="email">Отправка заявления</string>
     <string name="cancel">Отмена</string>
     <string name="login_key">login</string>
