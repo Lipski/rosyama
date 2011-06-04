@@ -4,6 +4,35 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <TextView
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:text="Регион"
+    />
+    <EditText
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:id="@+id/area"
+        android:text=""
+        android:singleLine="true"
+    /> 
+    <TextView
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:text="Город"
+    />
+    <EditText
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:id="@+id/locality"
+        android:text=""
+        android:singleLine="true"
+    /> 
     <TextView
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
@@ -13,7 +42,7 @@
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content"
         android:id="@+id/address"
-        android:text="40 лет Победы - 31"
+        android:text=""
         android:singleLine="true"
     /> 
     <TextView

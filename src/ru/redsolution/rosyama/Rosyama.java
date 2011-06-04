@@ -33,6 +33,10 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import android.app.Application;
 import android.content.Context;
@@ -58,6 +62,9 @@ public class Rosyama extends Application {
 					".*id=\"pdf_form_signature\" name=\"signature\" value=\"(.*?)\">.*",
 					Pattern.DOTALL);
 	private static final Map<String, Pattern> PDF_PATTERNS = new HashMap<String, Pattern>();
+
+	private static final String YANDEX_KEY = "ACG3DU0BAAAA6wkJGgQAgRY2ChXSECRoRN9yDmLrz_wSRYQAAAAAAAAAAABC1YjXH-X5KWN_NyvBCtLgrvoZSg==";
+	private static final String YANDEX_URL = "http://geocode-maps.yandex.ru/1.x/?format=json&key=%s&geocode=%s%%2C%s&results=1";
 
 	static {
 		PDF_PATTERNS.put("signature", PDF_PATTERN_SIGNATURE);
@@ -107,6 +114,26 @@ public class Rosyama extends Application {
 	private Location location;
 
 	/**
+	 * Used address.
+	 */
+	private String address;
+
+	/**
+	 * Used city.
+	 */
+	private String locality;
+
+	/**
+	 * Used area.
+	 */
+	private String area;
+
+	/**
+	 * Used comment.
+	 */
+	private String comment;
+
+	/**
 	 * Used hole's id.
 	 */
 	private String id;
@@ -131,13 +158,15 @@ public class Rosyama extends Application {
 		client = null;
 		login = null;
 		password = null;
-		path = "/sdcard/2011-06-02-21-20-24.jpg";
-		location = new Location("GPS");
-		location.setLatitude(55.123456);
-		location.setLongitude(61.987654);
+		path = null;
+		location = null;
 		id = null;
 		attrs = new HashMap<String, String>();
 		pdf = null;
+		address = "";
+		locality = "";
+		area = "";
+		comment = "";
 	}
 
 	@Override
@@ -162,8 +191,9 @@ public class Rosyama extends Application {
 	 * Sets path to the photo.
 	 * 
 	 * @param path
+	 * @return
 	 */
-	public void setPhoto(String path) {
+	public boolean setPhoto(String path) {
 		this.path = path;
 		this.id = null;
 
@@ -185,7 +215,7 @@ public class Rosyama extends Application {
 
 		} else if (net == null)
 			best = gps;
-		setPosition(best);
+		return setPosition(best);
 	}
 
 	/**
@@ -197,13 +227,107 @@ public class Rosyama extends Application {
 		return path != null;
 	}
 
+	public String getArea() {
+		return area;
+	}
+
+	public String getLocality() {
+		return locality;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
 	/**
 	 * Sets location.
 	 * 
 	 * @param location
+	 * @return
 	 */
-	public void setPosition(Location location) {
+	public boolean setPosition(Location location) {
 		this.location = location;
+		if (location == null) {
+			this.location = new Location("GPS");
+			this.location.setLatitude(55.693163);
+			this.location.setLongitude(37.707086);
+			area = "";
+			locality = "";
+			address = "";
+			comment = "";
+			// return false;
+		}
+		RedirctedHttpClient client = new RedirctedHttpClient();
+		HttpGet get;
+		HttpResponse response;
+		HttpEntity entity;
+		String content;
+		boolean done = false;
+		try {
+			get = new HttpGet(String.format(YANDEX_URL, YANDEX_KEY,
+					getPoint(this.location.getLongitude()),
+					getPoint(this.location.getLatitude())));
+			response = client.execute(get);
+			System.out
+					.println("location form get: " + response.getStatusLine());
+			entity = response.getEntity();
+			if (entity != null) {
+				content = EntityUtils.toString(entity);
+				FileOutputStream stream = openFileOutput(
+						FILE_NAME_FORMAT.format(new Date()) + ".json",
+						Context.MODE_WORLD_WRITEABLE);
+				stream.write(content.getBytes());
+				Object result = new JSONTokener(content).nextValue();
+				JSONArray array = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) result)
+						.get("response")).get("GeoObjectCollection"))
+						.get("featureMember");
+				if (array.length() == 1) {
+					JSONObject object = (JSONObject) (JSONObject) ((JSONObject) array
+							.get(0)).get("GeoObject");
+					this.address = object.getString("name");
+					JSONObject country = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) object
+							.get("metaDataProperty")).get("GeocoderMetaData"))
+							.get("AddressDetails")).get("Country");
+					JSONObject area;
+					try {
+						area = (JSONObject) country.get("AdministrativeArea");
+						this.area = area.getString("AdministrativeAreaName");
+					} catch (JSONException e) {
+						area = country;
+						this.area = "";
+					}
+					try {
+						JSONObject locality = (JSONObject) area.get("Locality");
+						this.locality = locality.getString("LocalityName");
+					} catch (JSONException e) {
+						this.locality = "";
+					}
+					done = true;
+				}
+			}
+			if (entity != null)
+				entity.consumeContent();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		if (done) {
+			return true;
+		} else {
+			location = null;
+			area = "";
+			locality = "";
+			address = "";
+			comment = "";
+			return false;
+		}
 	}
 
 	/**
@@ -350,7 +474,12 @@ public class Rosyama extends Application {
 		}
 	}
 
-	public boolean add(String address, String comment) {
+	public boolean add(String area, String locality, String address,
+			String comment) {
+		this.area = area;
+		this.locality = locality;
+		this.address = address;
+		this.comment = comment;
 		HttpPost post;
 		HttpResponse response;
 		HttpEntity entity;
@@ -366,14 +495,9 @@ public class Rosyama extends Application {
 			ContentBody contentBody = new FileBody(file, "image/jpeg");
 			String ID = "0";
 			String type = "holeonroad";
-			String adr_subjectrf = "Челябинская область";
-			String adr_city = "Челябинск";
-			String mapaddress = adr_city + address;
-			String coordinates = Location.convert(location.getLongitude(),
-					Location.FORMAT_DEGREES).replace(',', '.')
-					+ ","
-					+ Location.convert(location.getLatitude(),
-							Location.FORMAT_DEGREES).replace(',', '.');
+			String mapaddress = locality + address;
+			String coordinates = getPoint(location.getLongitude()) + ","
+					+ getPoint(location.getLatitude());
 			multipartEntity.addPart("ID",
 					new StringBody(ID, Charset.forName(HTTP.UTF_8)));
 			multipartEntity.addPart("TYPE",
@@ -394,9 +518,9 @@ public class Rosyama extends Application {
 					new StringBody(comment, Charset.forName(HTTP.UTF_8)));
 			multipartEntity.addPart("mapaddress", new StringBody(mapaddress,
 					Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("adr_subjectrf", new StringBody(
-					adr_subjectrf, Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("adr_city", new StringBody(adr_city,
+			multipartEntity.addPart("adr_subjectrf", new StringBody(area,
+					Charset.forName(HTTP.UTF_8)));
+			multipartEntity.addPart("adr_city", new StringBody(locality,
 					Charset.forName(HTTP.UTF_8)));
 			multipartEntity.addPart("COORDINATES", new StringBody(coordinates,
 					Charset.forName(HTTP.UTF_8)));
@@ -494,6 +618,11 @@ public class Rosyama extends Application {
 			shutdown();
 			return false;
 		}
+	}
+
+	private String getPoint(double value) {
+		return Location.convert(value, Location.FORMAT_DEGREES).replace(',',
+				'.');
 	}
 
 	/**
