@@ -52,7 +52,7 @@ public class Rosyama extends Application {
 
 	private static final String PDF_PATTERN_TEMPLATE = ".*id=\"pdf_form_%1$s\" name=\"%1$s\">(.*?)</textarea>.*";
 	private static final String[] PDF_PATTERN_FIELDS = new String[] { "to",
-			"from", "postaddress", "address", };
+			"from", "postaddress", "address", "signature" };
 	private static final Pattern PDF_PATTERN_SIGNATURE = Pattern
 			.compile(
 					".*id=\"pdf_form_signature\" name=\"signature\" value=\"(.*?)\">.*",
@@ -61,14 +61,11 @@ public class Rosyama extends Application {
 
 	static {
 		PDF_PATTERNS.put("signature", PDF_PATTERN_SIGNATURE);
-		for (String field : PDF_PATTERN_FIELDS) {
-			PDF_PATTERNS
-					.put(field, Pattern.compile(
-							String.format(PDF_PATTERN_TEMPLATE, field),
-							Pattern.DOTALL));
-			System.out.println(Pattern.compile(String.format(
-					PDF_PATTERN_TEMPLATE, field)));
-		}
+		for (String field : PDF_PATTERN_FIELDS)
+			if (!PDF_PATTERNS.containsKey(field))
+				PDF_PATTERNS.put(field, Pattern.compile(
+						String.format(PDF_PATTERN_TEMPLATE, field),
+						Pattern.DOTALL));
 	}
 
 	private static final String LOGIN = "http://rosyama.ru/personal/holes.php";
@@ -362,8 +359,6 @@ public class Rosyama extends Application {
 		boolean done = false;
 		try {
 			post = new HttpPost(ADD);
-			// post.addHeader("Content-Type",
-			// "application/soap+xml; charset=\"utf-8\"");
 			File file = new File(path);
 			MultipartEntity multipartEntity = new MultipartEntity(
 					HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -461,14 +456,13 @@ public class Rosyama extends Application {
 		HttpPost post;
 		HttpResponse response;
 		HttpEntity entity;
-		String content;
 		boolean done = false;
 		try {
 			post = new HttpPost(String.format(PDF, id));
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-			for (Entry<String, String> entry : attrs.entrySet())
-				nameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry
-						.getValue()));
+			for (String field : PDF_PATTERN_FIELDS)
+				nameValuePairs.add(new BasicNameValuePair(field, attrs
+						.get(field)));
 			UrlEncodedFormEntity encodedFormEntity = new UrlEncodedFormEntity(
 					nameValuePairs, HTTP.UTF_8);
 			FileOutputStream stream = openFileOutput(
@@ -480,10 +474,9 @@ public class Rosyama extends Application {
 			System.out.println("PDF form post: " + response.getStatusLine());
 			entity = response.getEntity();
 			if (entity != null) {
-				content = EntityUtils.toString(entity);
 				pdf = id + ".pdf";
 				stream = openFileOutput(pdf, Context.MODE_WORLD_WRITEABLE);
-				stream.write(content.getBytes());
+				entity.writeTo(stream);
 				done = true;
 			}
 			if (entity != null)
