@@ -111,9 +111,9 @@ public class Main extends Activity implements OnClickListener {
 			if (((Rosyama) getApplication()).pdf()) {
 				intent = new Intent(android.content.Intent.ACTION_SEND);
 				intent.setType("text/plain");
-				Uri uri = Uri.fromFile(new File(((Rosyama) getApplication())
-						.getPdf()));
-				System.out.println(uri.getPath());
+				File file = getFileStreamPath(((Rosyama) getApplication())
+						.getPdf());
+				Uri uri = Uri.fromFile(file);
 				System.out.println(uri);
 				intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
 				startActivity(Intent.createChooser(intent,
