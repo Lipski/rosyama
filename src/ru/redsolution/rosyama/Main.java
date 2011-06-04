@@ -30,7 +30,6 @@ public class Main extends Activity implements OnClickListener {
 		findViewById(R.id.photo).setOnClickListener(this);
 		findViewById(R.id.send).setOnClickListener(this);
 		findViewById(R.id.get).setOnClickListener(this);
-
 		requestedUri = null;
 		if (savedInstanceState != null) {
 			String stringUri = savedInstanceState
@@ -87,7 +86,7 @@ public class Main extends Activity implements OnClickListener {
 		super.onOptionsItemSelected(item);
 		switch (item.getItemId()) {
 		case OPTION_MENU_PREFERENCE_ID:
-			Intent intent = new Intent(this, Preferences.class);
+			Intent intent = new Intent(this, Login.class);
 			startActivity(intent);
 			return true;
 		}
