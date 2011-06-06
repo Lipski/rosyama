@@ -74,8 +74,8 @@
 	        android:layout_width="fill_parent" 
 	        android:layout_height="wrap_content"
 	        android:layout_weight="1" 
-	        android:id="@+id/send"
-	        android:text="@string/send"
+	        android:id="@+id/get"
+	        android:text="@string/get"
 	    />
 	    <Button
 	        android:layout_width="fill_parent" 

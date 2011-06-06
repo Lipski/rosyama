@@ -5,8 +5,10 @@ import java.util.Date;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -14,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Toast;
 
 public class Main extends Activity implements OnClickListener,
 		DialogClickListener {
@@ -41,8 +44,7 @@ public class Main extends Activity implements OnClickListener,
 			if (stringUri != null)
 				requestedUri = Uri.parse(stringUri);
 		}
-		// ((Rosyama) getApplication())
-		// .setPhoto("/mnt/sdcard/2011-06-02-21-20-24.jpg");
+		// new PhotoTask().execute("/sdcard/2011-06-02-21-20-24.jpg");
 	}
 
 	@Override
@@ -72,7 +74,7 @@ public class Main extends Activity implements OnClickListener,
 			if (resultCode != RESULT_OK)
 				requestedUri = null;
 			else
-				((Rosyama) getApplication()).setPhoto(requestedUri.getPath());
+				new PhotoTask().execute(requestedUri.getPath());
 			enables();
 			break;
 		}
@@ -81,9 +83,8 @@ public class Main extends Activity implements OnClickListener,
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		menu.add(0, OPTION_MENU_PREFERENCE_ID, 0,
-				getString(R.string.preferences)).setIcon(
-				android.R.drawable.ic_menu_preferences);
+		menu.add(0, OPTION_MENU_PREFERENCE_ID, 0, getString(R.string.login))
+				.setIcon(android.R.drawable.ic_menu_preferences);
 		return true;
 	}
 
@@ -174,5 +175,38 @@ public class Main extends Activity implements OnClickListener,
 
 	@Override
 	public void onCancel(DialogBuilder dialog) {
+	}
+
+	private class PhotoTask extends AsyncTask<String, String, String> {
+		private ProgressDialog progressDialog;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			progressDialog = new ProgressDialog(Main.this);
+			progressDialog.setMessage(getString(R.string.photo_progress));
+			progressDialog.setIndeterminate(true);
+			progressDialog.setCancelable(false);
+			progressDialog.show();
+		}
+
+		@Override
+		protected String doInBackground(String... params) {
+			((Rosyama) getApplication()).setPhoto(params[0]);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			try {
+				progressDialog.dismiss();
+			} catch (IllegalArgumentException e) {
+				return;
+			}
+			if (result != null)
+				Toast.makeText(Main.this, result, Toast.LENGTH_LONG).show();
+			enables();
+		}
 	}
 }

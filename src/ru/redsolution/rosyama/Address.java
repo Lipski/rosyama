@@ -1,6 +1,8 @@
 package ru.redsolution.rosyama;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -57,23 +59,51 @@ public class Address extends Activity implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.send:
-			if (!((Rosyama) getApplication()).login()) {
-				Toast.makeText(this, getString(R.string.auth_fail),
-						Toast.LENGTH_LONG).show();
-				break;
-			}
-			if (!((Rosyama) getApplication()).add(area.getText().toString(),
-					locality.getText().toString(),
-					address.getText().toString(), comment.getText().toString())) {
-				Toast.makeText(this, getString(R.string.add_fail),
-						Toast.LENGTH_LONG).show();
-				break;
-			}
-			finish();
+			new AddTask().execute(area.getText().toString(), locality.getText()
+					.toString(), address.getText().toString(), comment
+					.getText().toString());
 			break;
 		case R.id.cancel:
 			finish();
 			break;
+		}
+	}
+
+	private class AddTask extends AsyncTask<String, String, String> {
+		private ProgressDialog progressDialog;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			progressDialog = new ProgressDialog(Address.this);
+			progressDialog.setMessage(getString(R.string.send_progress));
+			progressDialog.setIndeterminate(true);
+			progressDialog.setCancelable(false);
+			progressDialog.show();
+		}
+
+		@Override
+		protected String doInBackground(String... params) {
+			Rosyama rosyama = (Rosyama) getApplication();
+			if (!rosyama.login())
+				return getString(R.string.login_fail);
+			if (!rosyama.add(params[0], params[1], params[2], params[3]))
+				return getString(R.string.get_fail);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			try {
+				progressDialog.dismiss();
+			} catch (IllegalArgumentException e) {
+				return;
+			}
+			if (result == null)
+				finish();
+			else
+				Toast.makeText(Address.this, result, Toast.LENGTH_LONG).show();
 		}
 	}
 }

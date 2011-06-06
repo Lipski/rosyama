@@ -1,8 +1,10 @@
 package ru.redsolution.rosyama;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,7 +31,7 @@ public class Form extends Activity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.form);
 		rosyama = (Rosyama) getApplication();
-		findViewById(R.id.send).setOnClickListener(this);
+		findViewById(R.id.get).setOnClickListener(this);
 		findViewById(R.id.cancel).setOnClickListener(this);
 		to = (EditText) findViewById(R.id.to);
 		from = (EditText) findViewById(R.id.from);
@@ -64,29 +66,58 @@ public class Form extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		Intent intent;
 		switch (v.getId()) {
-		case R.id.send:
-			if (((Rosyama) getApplication()).pdf(to.getText().toString(), from
-					.getText().toString(), postaddress.getText().toString(),
-					address.getText().toString(), signature.getText()
-							.toString())) {
-				intent = new Intent(android.content.Intent.ACTION_SEND);
-				intent.setType("text/plain");
-				Uri uri = Uri.fromFile(((Rosyama) getApplication()).getPdf());
-				System.out.println(uri);
-				intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
-				startActivity(Intent.createChooser(intent,
-						getString(R.string.email)));
-			} else {
-				Toast.makeText(this, getString(R.string.pdf_fail),
-						Toast.LENGTH_LONG).show();
-			}
-			finish();
+		case R.id.get:
+			new GetTask().execute(to.getText().toString(), from.getText()
+					.toString(), postaddress.getText().toString(), address
+					.getText().toString(), signature.getText().toString());
 			break;
 		case R.id.cancel:
 			finish();
 			break;
+		}
+	}
+
+	private class GetTask extends AsyncTask<String, String, String> {
+		private ProgressDialog progressDialog;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			progressDialog = new ProgressDialog(Form.this);
+			progressDialog.setMessage(getString(R.string.get_progress));
+			progressDialog.setIndeterminate(true);
+			progressDialog.setCancelable(false);
+			progressDialog.show();
+		}
+
+		@Override
+		protected String doInBackground(String... params) {
+			Rosyama rosyama = (Rosyama) getApplication();
+			if (!rosyama.pdf(params[0], params[1], params[2], params[3],
+					params[4]))
+				return getString(R.string.get_fail);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			try {
+				progressDialog.dismiss();
+			} catch (IllegalArgumentException e) {
+				return;
+			}
+			if (result == null) {
+				Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+				intent.setType("text/plain");
+				Uri uri = Uri.fromFile(((Rosyama) getApplication()).getPdf());
+				intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
+				startActivity(Intent.createChooser(intent,
+						getString(R.string.email)));
+				finish();
+			} else
+				Toast.makeText(Form.this, result, Toast.LENGTH_LONG).show();
 		}
 	}
 }
