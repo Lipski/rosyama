@@ -142,17 +142,20 @@ public class Rosyama extends Application {
 	/**
 	 * Attributes used to get pdf.
 	 */
-	private Map<String, String> attrs;
-
-	/**
-	 * Settings.
-	 */
-	private SharedPreferences settings;
+	private String from;
+	private String to;
+	private String postaddress;
+	private String signature;
 
 	/**
 	 * Result pdf file.
 	 */
 	private File pdf;
+
+	/**
+	 * Settings.
+	 */
+	private SharedPreferences settings;
 
 	public Rosyama() {
 		csrf = null;
@@ -162,12 +165,15 @@ public class Rosyama extends Application {
 		path = null;
 		location = null;
 		id = null;
-		attrs = new HashMap<String, String>();
-		pdf = null;
-		address = "";
-		locality = "";
 		area = "";
+		locality = "";
+		address = "";
 		comment = "";
+		from = "";
+		to = "";
+		postaddress = "";
+		signature = "";
+		pdf = null;
 	}
 
 	@Override
@@ -177,6 +183,8 @@ public class Rosyama extends Application {
 				.getDefaultSharedPreferences(getBaseContext());
 		login = settings.getString(getString(R.string.login_key), "");
 		password = settings.getString(getString(R.string.password_key), "");
+		postaddress = settings.getString(getString(R.string.postaddress_key),
+				"");
 	}
 
 	/**
@@ -486,6 +494,7 @@ public class Rosyama extends Application {
 		HttpEntity entity;
 		Matcher matcher;
 		String content;
+		HashMap<String, String> attrs = new HashMap<String, String>();
 		boolean done = false;
 		try {
 			post = new HttpPost(ADD);
@@ -570,6 +579,12 @@ public class Rosyama extends Application {
 			e.printStackTrace();
 		}
 		if (done) {
+			to = attrs.get("to");
+			from = attrs.get("from");
+			if (!"".equals(attrs.get("postaddress")))
+				postaddress = attrs.get("postaddress");
+			address = attrs.get("address");
+			signature = attrs.get("signature");
 			return true;
 		} else {
 			shutdown();
@@ -577,7 +592,32 @@ public class Rosyama extends Application {
 		}
 	}
 
-	public boolean pdf() {
+	public String getFrom() {
+		return from;
+	}
+
+	public String getTo() {
+		return to;
+	}
+
+	public String getPostaddress() {
+		return postaddress;
+	}
+
+	public String getSignature() {
+		return signature;
+	}
+
+	public boolean pdf(String to, String from, String postaddress,
+			String address, String signature) {
+		this.to = to;
+		this.from = from;
+		this.postaddress = postaddress;
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString(getString(R.string.postaddress_key), postaddress);
+		editor.commit();
+		this.address = address;
+		this.signature = signature;
 		HttpPost post;
 		HttpResponse response;
 		HttpEntity entity;
@@ -585,9 +625,13 @@ public class Rosyama extends Application {
 		try {
 			post = new HttpPost(String.format(PDF, id));
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-			for (String field : PDF_PATTERN_FIELDS)
-				nameValuePairs.add(new BasicNameValuePair(field, attrs
-						.get(field)));
+			nameValuePairs.add(new BasicNameValuePair("to", this.to));
+			nameValuePairs.add(new BasicNameValuePair("from", this.from));
+			nameValuePairs.add(new BasicNameValuePair("postaddress",
+					this.postaddress));
+			nameValuePairs.add(new BasicNameValuePair("address", this.address));
+			nameValuePairs.add(new BasicNameValuePair("signature",
+					this.signature));
 			UrlEncodedFormEntity encodedFormEntity = new UrlEncodedFormEntity(
 					nameValuePairs, HTTP.UTF_8);
 			FileOutputStream stream = openFileOutput(
@@ -636,7 +680,7 @@ public class Rosyama extends Application {
 			client = null;
 			csrf = null;
 			id = null;
-			attrs.clear();
+			to = "";
 			pdf = null;
 		}
 	}

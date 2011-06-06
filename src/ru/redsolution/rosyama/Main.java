@@ -14,7 +14,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Toast;
 
 public class Main extends Activity implements OnClickListener,
 		DialogClickListener {
@@ -163,18 +162,8 @@ public class Main extends Activity implements OnClickListener,
 			startActivity(intent);
 			break;
 		case DIALOG_GET_ID:
-			if (((Rosyama) getApplication()).pdf()) {
-				intent = new Intent(android.content.Intent.ACTION_SEND);
-				intent.setType("text/plain");
-				Uri uri = Uri.fromFile(((Rosyama) getApplication()).getPdf());
-				System.out.println(uri);
-				intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
-				startActivity(Intent.createChooser(intent,
-						getString(R.string.email)));
-			} else {
-				Toast.makeText(this, getString(R.string.pdf_fail),
-						Toast.LENGTH_LONG).show();
-			}
+			intent = new Intent(this, Form.class);
+			startActivity(intent);
 			break;
 		}
 	}

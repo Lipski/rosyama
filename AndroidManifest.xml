@@ -14,8 +14,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".Address" android:label="@string/app_name" />
+        <activity android:name=".Form" android:label="@string/app_name" />
         <activity android:name=".Login" android:label="@string/app_name" />
-        <activity android:name=".Preferences" android:label="@string/preferences" />
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

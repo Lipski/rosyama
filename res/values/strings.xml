@@ -19,4 +19,5 @@
     <string name="cancel">Отмена</string>
     <string name="login_key">login</string>
     <string name="password_key">password</string>
+    <string name="postaddress_key">postaddress</string>
 </resources>
