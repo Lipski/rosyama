@@ -47,6 +47,9 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 
 public class Rosyama extends Application {
+	private static final boolean LOG = true;
+	private static final boolean WRITE = false;
+
 	private static final Pattern CSRF_PATTERN = Pattern.compile(
 			".*name=\'csrfmiddlewaretoken\' value=\'(.+?)\'.*", Pattern.DOTALL);
 	private static final Pattern LOGIN_PATTERN = Pattern.compile(
@@ -281,15 +284,18 @@ public class Rosyama extends Application {
 					getPoint(this.location.getLongitude()),
 					getPoint(this.location.getLatitude())));
 			response = client.execute(get);
-			System.out
-					.println("location form get: " + response.getStatusLine());
+			if (LOG)
+				System.out.println("location form get: "
+						+ response.getStatusLine());
 			entity = response.getEntity();
 			if (entity != null) {
 				content = EntityUtils.toString(entity);
-				FileOutputStream stream = openFileOutput(
-						FILE_NAME_FORMAT.format(new Date()) + ".json",
-						Context.MODE_WORLD_WRITEABLE);
-				stream.write(content.getBytes());
+				if (WRITE) {
+					FileOutputStream stream = openFileOutput(
+							FILE_NAME_FORMAT.format(new Date()) + ".json",
+							Context.MODE_WORLD_WRITEABLE);
+					stream.write(content.getBytes());
+				}
 				Object result = new JSONTokener(content).nextValue();
 				JSONArray array = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) result)
 						.get("response")).get("GeoObjectCollection"))
@@ -321,11 +327,15 @@ public class Rosyama extends Application {
 			if (entity != null)
 				entity.consumeContent();
 		} catch (ClientProtocolException e) {
-			e.printStackTrace();
+			if (LOG)
+
+				e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		} catch (JSONException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		}
 		if (done) {
 			return true;
@@ -385,7 +395,9 @@ public class Rosyama extends Application {
 		try {
 			get = new HttpGet(LOGIN);
 			response = client.execute(get);
-			System.out.println("Login form get: " + response.getStatusLine());
+			if (LOG)
+				System.out.println("Login form get: "
+						+ response.getStatusLine());
 			entity = response.getEntity();
 			matcher = CSRF_PATTERN.matcher(EntityUtils.toString(entity));
 			if (matcher.matches())
@@ -415,28 +427,38 @@ public class Rosyama extends Application {
 			}
 			UrlEncodedFormEntity encodedFormEntity = new UrlEncodedFormEntity(
 					nameValuePairs, HTTP.UTF_8);
-			FileOutputStream stream = openFileOutput(
-					FILE_NAME_FORMAT.format(new Date()) + ".post",
-					Context.MODE_WORLD_WRITEABLE);
-			encodedFormEntity.writeTo(stream);
+
+			if (WRITE) {
+				FileOutputStream stream = openFileOutput(
+						FILE_NAME_FORMAT.format(new Date()) + ".post",
+						Context.MODE_WORLD_WRITEABLE);
+				encodedFormEntity.writeTo(stream);
+			}
 			post.setEntity(encodedFormEntity);
 			response = client.execute(post);
-			System.out.println("Login form post: " + response.getStatusLine());
+			if (LOG)
+				System.out.println("Login form post: "
+						+ response.getStatusLine());
 			entity = response.getEntity();
 			if (entity != null) {
 				content = EntityUtils.toString(entity);
-				stream = openFileOutput(FILE_NAME_FORMAT.format(new Date())
-						+ ".html", Context.MODE_WORLD_WRITEABLE);
-				stream.write(content.getBytes());
+				if (WRITE) {
+					FileOutputStream stream = openFileOutput(
+							FILE_NAME_FORMAT.format(new Date()) + ".html",
+							Context.MODE_WORLD_WRITEABLE);
+					stream.write(content.getBytes());
+				}
 				if (!LOGIN_PATTERN.matcher(content).matches())
 					done = true;
 			}
 			if (entity != null)
 				entity.consumeContent();
 		} catch (ClientProtocolException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		}
 		if (done) {
 			this.login = login;
@@ -534,13 +556,16 @@ public class Rosyama extends Application {
 					Charset.forName(HTTP.UTF_8)));
 			multipartEntity.addPart("COORDINATES", new StringBody(coordinates,
 					Charset.forName(HTTP.UTF_8)));
-			FileOutputStream stream = openFileOutput(
-					FILE_NAME_FORMAT.format(new Date()) + ".post",
-					Context.MODE_WORLD_WRITEABLE);
-			multipartEntity.writeTo(stream);
+			if (WRITE) {
+				FileOutputStream stream = openFileOutput(
+						FILE_NAME_FORMAT.format(new Date()) + ".post",
+						Context.MODE_WORLD_WRITEABLE);
+				multipartEntity.writeTo(stream);
+			}
 			post.setEntity(multipartEntity);
 			response = client.execute(post);
-			System.out.println("File form post: " + post.getRequestLine());
+			if (LOG)
+				System.out.println("File form post: " + post.getRequestLine());
 			if (client.getRedirects().size() != 1)
 				throw new IOException("Redirect missed.");
 			matcher = ID_PATTERN.matcher(client.getRedirects().iterator()
@@ -548,23 +573,29 @@ public class Rosyama extends Application {
 			if (!matcher.matches())
 				throw new IOException("Illegal redirect.");
 			id = matcher.group(1);
-			System.out.println("ID: " + id);
+			if (LOG)
+				System.out.println("ID: " + id);
 			entity = response.getEntity();
 			if (entity != null) {
 				content = EntityUtils.toString(entity);
-				stream = openFileOutput(FILE_NAME_FORMAT.format(new Date())
-						+ ".html", Context.MODE_WORLD_WRITEABLE);
-				stream.write(content.getBytes());
+				if (WRITE) {
+					FileOutputStream stream = openFileOutput(
+							FILE_NAME_FORMAT.format(new Date()) + ".html",
+							Context.MODE_WORLD_WRITEABLE);
+					stream.write(content.getBytes());
+				}
 				done = true;
 				attrs.clear();
 				for (Entry<String, Pattern> entry : PDF_PATTERNS.entrySet()) {
 					matcher = entry.getValue().matcher(content);
 					if (matcher.matches()) {
 						attrs.put(entry.getKey(), matcher.group(1));
-						System.out.println(entry.getKey() + ": "
-								+ matcher.group(1));
+						if (LOG)
+							System.out.println(entry.getKey() + ": "
+									+ matcher.group(1));
 					} else {
-						System.out.println(entry.getKey() + ": not found");
+						if (LOG)
+							System.out.println(entry.getKey() + ": not found");
 						done = false;
 					}
 				}
@@ -572,11 +603,14 @@ public class Rosyama extends Application {
 			if (entity != null)
 				entity.consumeContent();
 		} catch (ClientProtocolException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		}
 		if (done) {
 			to = attrs.get("to");
@@ -634,29 +668,36 @@ public class Rosyama extends Application {
 					this.signature));
 			UrlEncodedFormEntity encodedFormEntity = new UrlEncodedFormEntity(
 					nameValuePairs, HTTP.UTF_8);
-			FileOutputStream stream = openFileOutput(
-					FILE_NAME_FORMAT.format(new Date()) + ".post",
-					Context.MODE_WORLD_WRITEABLE);
-			encodedFormEntity.writeTo(stream);
+			if (WRITE) {
+				FileOutputStream stream = openFileOutput(
+						FILE_NAME_FORMAT.format(new Date()) + ".post",
+						Context.MODE_WORLD_WRITEABLE);
+				encodedFormEntity.writeTo(stream);
+			}
 			post.setEntity(encodedFormEntity);
 			response = client.execute(post);
-			System.out.println("PDF form post: " + response.getStatusLine());
+			if (LOG)
+				System.out
+						.println("PDF form post: " + response.getStatusLine());
 			entity = response.getEntity();
 			if (entity != null) {
 				pdf = new File(Environment.getExternalStorageDirectory(), id
 						+ ".pdf");
-				stream = new FileOutputStream(pdf);
+				FileOutputStream stream = new FileOutputStream(pdf);
 				entity.writeTo(stream);
 				done = true;
 			}
 			if (entity != null)
 				entity.consumeContent();
 		} catch (ClientProtocolException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			if (LOG)
+				e.printStackTrace();
 		}
 		if (done) {
 			return true;
