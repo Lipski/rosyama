@@ -3,6 +3,8 @@ package ru.redsolution.rosyama;
 import java.io.File;
 import java.util.Date;
 
+import ru.redsolution.rosyama.Rosyama.ExceptionWithResource;
+import ru.redsolution.rosyama.Rosyama.State;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -35,7 +37,8 @@ public class Main extends Activity implements OnClickListener,
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		for (int id : new int[] { R.id.photo, R.id.send, R.id.get })
+		for (int id : new int[] { R.id.photo_image, R.id.hole_image,
+				R.id.pdf_image })
 			findViewById(id).setOnClickListener(this);
 		requestedUri = null;
 		if (savedInstanceState != null) {
@@ -50,8 +53,8 @@ public class Main extends Activity implements OnClickListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (!((Rosyama) getApplication()).hasLogin()) {
-			Intent intent = new Intent(this, Login.class);
+		if (!((Rosyama) getApplication()).getState().isAuthorized()) {
+			Intent intent = new Intent(this, Auth.class);
 			startActivity(intent);
 			finish();
 			return;
@@ -93,7 +96,7 @@ public class Main extends Activity implements OnClickListener,
 		super.onOptionsItemSelected(item);
 		switch (item.getItemId()) {
 		case OPTION_MENU_PREFERENCE_ID:
-			Intent intent = new Intent(this, Login.class);
+			Intent intent = new Intent(this, Auth.class);
 			startActivity(intent);
 			return true;
 		}
@@ -103,13 +106,13 @@ public class Main extends Activity implements OnClickListener,
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
-		case R.id.photo:
+		case R.id.photo_image:
 			showDialog(DIALOG_PHOTO_ID);
 			break;
-		case R.id.send:
+		case R.id.hole_image:
 			showDialog(DIALOG_SEND_ID);
 			break;
-		case R.id.get:
+		case R.id.pdf_image:
 			showDialog(DIALOG_GET_ID);
 			break;
 		}
@@ -124,10 +127,10 @@ public class Main extends Activity implements OnClickListener,
 					getString(R.string.photo_help)).create();
 		case DIALOG_SEND_ID:
 			return new DialogBuilder(this, this, DIALOG_SEND_ID,
-					getString(R.string.send_help)).create();
+					getString(R.string.hole_help)).create();
 		case DIALOG_GET_ID:
 			return new DialogBuilder(this, this, DIALOG_GET_ID,
-					getString(R.string.get_help)).create();
+					getString(R.string.pdf_help)).create();
 		default:
 			return null;
 		}
@@ -139,13 +142,11 @@ public class Main extends Activity implements OnClickListener,
 	}
 
 	private void enables() {
-		findViewById(R.id.send).setEnabled(
-				((Rosyama) getApplication()).hasPhoto());
-		findViewById(R.id.send_label).setEnabled(
-				((Rosyama) getApplication()).hasPhoto());
-		findViewById(R.id.get).setEnabled(((Rosyama) getApplication()).hasId());
-		findViewById(R.id.get_label).setEnabled(
-				((Rosyama) getApplication()).hasId());
+		State state = ((Rosyama) getApplication()).getState();
+		findViewById(R.id.hole_image).setEnabled(state.canHole());
+		findViewById(R.id.hole_label).setEnabled(state.canHole());
+		findViewById(R.id.pdf_image).setEnabled(state.canPDF());
+		findViewById(R.id.pdf_label).setEnabled(state.canPDF());
 	}
 
 	@Override
@@ -159,11 +160,11 @@ public class Main extends Activity implements OnClickListener,
 			startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 			break;
 		case DIALOG_SEND_ID:
-			intent = new Intent(this, Address.class);
+			intent = new Intent(this, Hole.class);
 			startActivity(intent);
 			break;
 		case DIALOG_GET_ID:
-			intent = new Intent(this, Form.class);
+			intent = new Intent(this, PDF.class);
 			startActivity(intent);
 			break;
 		}
@@ -184,7 +185,7 @@ public class Main extends Activity implements OnClickListener,
 		protected void onPreExecute() {
 			super.onPreExecute();
 			progressDialog = new ProgressDialog(Main.this);
-			progressDialog.setMessage(getString(R.string.photo_progress));
+			progressDialog.setMessage(getString(R.string.photo_request));
 			progressDialog.setIndeterminate(true);
 			progressDialog.setCancelable(false);
 			progressDialog.show();
@@ -192,7 +193,12 @@ public class Main extends Activity implements OnClickListener,
 
 		@Override
 		protected String doInBackground(String... params) {
-			((Rosyama) getApplication()).setPhoto(params[0]);
+			try {
+				((Rosyama) getApplication()).photo(params[0]);
+				((Rosyama) getApplication()).geo();
+			} catch (ExceptionWithResource e) {
+				return getString(e.getResourceID());
+			}
 			return null;
 		}
 

@@ -12,19 +12,18 @@
     <TextView
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
-        android:text="Начальнику..."
+        android:text="@string/to_label"
     />
     <EditText
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content"
         android:id="@+id/to"
-        android:text=""
         android:singleLine="true"
     />
     <TextView
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
-        android:text="От"
+        android:text="@string/from_label"
     />
     <EditText
         android:layout_width="fill_parent" 
@@ -36,7 +35,7 @@
     <TextView
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
-        android:text="Почтовый адрес заявителя с индексом (для переписки и получения уведомлений)"
+        android:text="@string/postaddress_label"
     />
     <EditText
         android:layout_width="fill_parent" 
@@ -48,7 +47,7 @@
     <TextView
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
-        android:text="Адрес дефекта"
+        android:text="@string/address_label"
     />
     <EditText
         android:layout_width="fill_parent" 
@@ -58,7 +57,7 @@
     <TextView
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
-        android:text="Подпись"
+        android:text="@string/signature_label"
     />
     <EditText
         android:layout_width="fill_parent" 
@@ -74,8 +73,8 @@
 	        android:layout_width="fill_parent" 
 	        android:layout_height="wrap_content"
 	        android:layout_weight="1" 
-	        android:id="@+id/get"
-	        android:text="@string/get"
+	        android:id="@+id/send"
+	        android:text="@string/send"
 	    />
 	    <Button
 	        android:layout_width="fill_parent" 

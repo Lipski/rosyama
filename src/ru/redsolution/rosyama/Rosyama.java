@@ -1,9 +1,9 @@
 package ru.redsolution.rosyama;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -13,8 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -23,11 +25,9 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.AbstractContentBody;
-import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.message.BasicNameValuePair;
@@ -37,6 +37,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import android.app.Application;
 import android.content.Context;
@@ -46,137 +51,366 @@ import android.location.LocationManager;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 
+/**
+ * Класс приложения.
+ * 
+ * @author alexander.ivanov
+ * 
+ */
 public class Rosyama extends Application {
-	private static final boolean LOG = true;
-	private static final boolean WRITE = false;
+	/**
+	 * Писать логи, использовать точку по умолчанию для геокодинга.
+	 */
+	private static final boolean DEBUG = true;
 
-	private static final Pattern CSRF_PATTERN = Pattern.compile(
-			".*name=\'csrfmiddlewaretoken\' value=\'(.+?)\'.*", Pattern.DOTALL);
-	private static final Pattern LOGIN_PATTERN = Pattern.compile(
-			".*name=\"USER_LOGIN\" maxlength=\"255\" value=\"(.*?)\" />.*",
-			Pattern.DOTALL);
-	private static final Pattern ID_PATTERN = Pattern
-			.compile(".*/(\\d+?)/\\?.*");
+	/**
+	 * Состояние приложения.
+	 * 
+	 * @author alexander.ivanov
+	 * 
+	 */
+	public static enum State {
+		/**
+		 * Ожидание настроек для авторизации.
+		 */
+		idle,
 
-	private static final String PDF_PATTERN_TEMPLATE = ".*id=\"pdf_form_%1$s\" name=\"%1$s\">(.*?)</textarea>.*";
-	private static final String[] PDF_PATTERN_FIELDS = new String[] { "to",
-			"from", "postaddress", "address", "signature" };
-	private static final Pattern PDF_PATTERN_SIGNATURE = Pattern
-			.compile(
-					".*id=\"pdf_form_signature\" name=\"signature\" value=\"(.*?)\">.*",
-					Pattern.DOTALL);
-	private static final Map<String, Pattern> PDF_PATTERNS = new HashMap<String, Pattern>();
+		/**
+		 * Проверка авторизации.
+		 */
+		authRequest,
 
-	private static final String YANDEX_KEY = "ACG3DU0BAAAA6wkJGgQAgRY2ChXSECRoRN9yDmLrz_wSRYQAAAAAAAAAAABC1YjXH-X5KWN_NyvBCtLgrvoZSg==";
-	private static final String YANDEX_URL = "http://geocode-maps.yandex.ru/1.x/?format=json&key=%s&geocode=%s%%2C%s&results=1";
+		/**
+		 * Авторизация пройдена. Доступно фотографирование.
+		 */
+		authComplited,
 
-	static {
-		PDF_PATTERNS.put("signature", PDF_PATTERN_SIGNATURE);
-		for (String field : PDF_PATTERN_FIELDS)
-			if (!PDF_PATTERNS.containsKey(field))
-				PDF_PATTERNS.put(field, Pattern.compile(
-						String.format(PDF_PATTERN_TEMPLATE, field),
-						Pattern.DOTALL));
+		/**
+		 * Создается фотография (не используется).
+		 */
+		photoRequest,
+
+		/**
+		 * Фотография сделана.
+		 */
+		photoComplited,
+
+		/**
+		 * Определение адреса по координатам.
+		 */
+		geoRequest,
+
+		/**
+		 * Адрес определен. Доступно редактирование информации и отправка
+		 * дефекта.
+		 */
+		geoComplited,
+
+		/**
+		 * Отправка дефекта.
+		 */
+		holeRequest,
+
+		/**
+		 * Отправка дефекта завершена.
+		 */
+		holeComplited,
+
+		/**
+		 * Запрос главы ГИБДД.
+		 */
+		headRequest,
+
+		/**
+		 * Адресат (глава ГИБДД) определен. Доступно редактирование информации и
+		 * запрос pdf.
+		 */
+		headComplited,
+
+		/**
+		 * Запрос pdf файла.
+		 */
+		pdfRequest,
+
+		/**
+		 * PDF получен. Всё выполнено.
+		 */
+		pdfComplited;
+
+		/**
+		 * Логин задан и проверен.
+		 * 
+		 * @return
+		 */
+		public boolean isAuthorized() {
+			return this != idle && this != authRequest;
+		}
+
+		/**
+		 * Имеется фото для отправки.
+		 * 
+		 * @return
+		 */
+		public boolean canHole() {
+			return this != idle && this != authRequest && this != authComplited
+					&& this != photoRequest && this != photoComplited
+					&& this != geoRequest;
+		}
+
+		/**
+		 * Дефект был успешно отправлен.
+		 * 
+		 * @return
+		 */
+		public boolean canPDF() {
+			return this == headComplited || this == pdfRequest
+					|| this == pdfComplited;
+
+		}
+	};
+
+	/**
+	 * Тип деффекта.
+	 * 
+	 * @author alexander.ivanov
+	 * 
+	 */
+	public static enum HoleType {
+		/**
+		 * Разбитая дорога.
+		 */
+		badroad,
+
+		/**
+		 * Яма на дороге.
+		 */
+		holeonroad,
+
+		/**
+		 * Люк.
+		 */
+		hatch,
+
+		/**
+		 * Переезд (не используется).
+		 */
+		crossing,
+
+		/**
+		 * Отсутствие разметки (не используется).
+		 */
+		nomarking,
+
+		/**
+		 * Рельсы.
+		 */
+		rails,
+
+		/**
+		 * Лежачий полицейский.
+		 */
+		policeman,
+
+		/**
+		 * Ограждение (не используется).
+		 */
+		fence,
+
+		/**
+		 * Яма во дворе.
+		 */
+		holeinyard,
+
+		/**
+		 * Неисправный светофор (не используется).
+		 */
+		light,
 	}
 
-	private static final String LOGIN = "http://rosyama.ru/personal/holes.php";
-	// http://www.foryou-vip.ru:8000/journal/login/
-	private static final String ADD = "http://rosyama.ru/personal/add.php";
-	private static final String PDF = "http://rosyama.ru/%s/?pdf";
+	/**
+	 * Исключения, генерируемые приложением, содержащие ресурс с описанием
+	 * ошибки.
+	 * 
+	 * @author alexander.ivanov
+	 * 
+	 */
+	public class ExceptionWithResource extends Exception {
+		private static final long serialVersionUID = 1L;
+		private final int resourceID;
 
+		public ExceptionWithResource(int resourceID) {
+			this.resourceID = resourceID;
+		}
+
+		public int getResourceID() {
+			return resourceID;
+		}
+	}
+
+	/**
+	 * Писать заголовки запросов в catlog.
+	 */
+	private static final boolean LOG = DEBUG;
+
+	/**
+	 * Писать запросы и ответы в файлы.
+	 */
+	private static final boolean WRITE = DEBUG;
+
+	/**
+	 * Формат имени файла для записи запросов и ответов.
+	 */
 	public final static SimpleDateFormat FILE_NAME_FORMAT = new SimpleDateFormat(
 			"yyyy-MM-dd-HH-mm-ss");
 
 	/**
-	 * CSRF for this session.
+	 * Ключ авторизации для геокодинга.
 	 */
-	private String csrf;
+	private static final String YANDEX_KEY = "ACG3DU0BAAAA6wkJGgQAgRY2ChXSECRoRN9yDmLrz_wSRYQAAAAAAAAAAABC1YjXH-X5KWN_NyvBCtLgrvoZSg==";
 
 	/**
-	 * Used client.
+	 * URL геокодера.
+	 */
+	private static final String YANDEX_URL = "http://geocode-maps.yandex.ru/1.x/?format=json&key=%s&geocode=%s%%2C%s&results=1";
+
+	/**
+	 * Адрес регистрации через веб.
+	 */
+	public static final String REGISTER_URL = "http://st1234.greensight.ru/personal/holes.php?register=yes";
+
+	/**
+	 * XML хост РосЯмы.
+	 */
+	private static final String HOST = "http://xml-st1234.greensight.ru";
+
+	/**
+	 * Адрес для авторизации.
+	 */
+	private static final String AUTHORIZE_PATH = "/authorize/";
+
+	/**
+	 * Адрес для добавления дефекта.
+	 */
+	private static final String HOLE_PATH = "/add/";
+
+	/**
+	 * Адрес для получения ФИО главы ГИБДД.
+	 */
+	private static final String HEAD_PATH = "/my/%s/getgibddhead/";
+
+	/**
+	 * Адрес для запроса PDF файла.
+	 */
+	private static final String PDF_PATH = "/my/%s/pdf_gibdd/";
+
+	/**
+	 * Неправильный логин и/или пароль.
+	 */
+	private static final Object WRONG_CREDENTIALS = "WRONG_CREDENTIALS";
+
+	/**
+	 * Состояние приложения.
+	 */
+	private State state;
+
+	/**
+	 * Используемый HTTP клиент.
 	 */
 	private RedirctedHttpClient client;
 
 	/**
-	 * Used login.
+	 * Имя пользователя.
 	 */
 	private String login;
 
 	/**
-	 * Used password.
+	 * Пароль.
 	 */
 	private String password;
 
 	/**
-	 * Used path to the photo.
+	 * Путь до фотографии.
 	 */
 	private String path;
 
 	/**
-	 * Used location.
+	 * Место съемки.
 	 */
 	private Location location;
 
 	/**
-	 * Used address.
+	 * Адрес дефекта.
 	 */
 	private String address;
 
 	/**
-	 * Used city.
-	 */
-	private String locality;
-
-	/**
-	 * Used area.
-	 */
-	private String area;
-
-	/**
-	 * Used comment.
+	 * Комментарий к дефекту.
 	 */
 	private String comment;
 
 	/**
-	 * Used hole's id.
+	 * Тип дефекта.
+	 */
+	private HoleType type;
+
+	/**
+	 * Присвоенный номер ямы.
 	 */
 	private String id;
 
 	/**
-	 * Attributes used to get pdf.
+	 * Собственное ФИО.
 	 */
 	private String from;
+
+	/**
+	 * Глава ГИБДД.
+	 */
 	private String to;
-	private String postaddress;
+
+	/**
+	 * Собственный почтовый адрес.
+	 */
+	private String postAddress;
+
+	/**
+	 * Собственная подпись (Фамилия, инициалы).
+	 */
 	private String signature;
 
 	/**
-	 * Result pdf file.
+	 * Полученный pdf файл.
 	 */
-	private File pdf;
+	private File pdfFile;
 
 	/**
-	 * Settings.
+	 * Системные настройки.
 	 */
 	private SharedPreferences settings;
 
+	/**
+	 * Фабрика для DOM парсера.
+	 */
+	private DocumentBuilderFactory documentBuilderFactory;
+
 	public Rosyama() {
-		csrf = null;
-		client = null;
+		client = new RedirctedHttpClient();
+		documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		state = State.idle;
 		login = null;
 		password = null;
+		from = null;
+		signature = null;
+		postAddress = null;
+
 		path = null;
 		location = null;
+		address = null;
+		type = HoleType.holeonroad;
+		comment = null;
 		id = null;
-		area = "";
-		locality = "";
-		address = "";
-		comment = "";
-		from = "";
-		to = "";
-		postaddress = "";
-		signature = "";
-		pdf = null;
+		to = null;
+		pdfFile = null;
 	}
 
 	@Override
@@ -186,543 +420,587 @@ public class Rosyama extends Application {
 				.getDefaultSharedPreferences(getBaseContext());
 		login = settings.getString(getString(R.string.login_key), "");
 		password = settings.getString(getString(R.string.password_key), "");
-		postaddress = settings.getString(getString(R.string.postaddress_key),
+		from = settings.getString(getString(R.string.from_key), "");
+		signature = settings.getString(getString(R.string.signature_key), "");
+		postAddress = settings.getString(getString(R.string.postaddress_key),
 				"");
+		if (!"".equals(login))
+			state = State.authComplited;
 	}
 
 	/**
-	 * Whether there login was set.
+	 * Возвращает состояние приложения.
 	 * 
 	 * @return
 	 */
-	public boolean hasLogin() {
-		return !"".equals(login);
+	public State getState() {
+		return state;
 	}
 
 	/**
-	 * Sets path to the photo.
-	 * 
-	 * @param path
-	 * @return
-	 */
-	public boolean setPhoto(String path) {
-		this.path = path;
-		this.id = null;
-
-		Location gps = ((LocationManager) getSystemService(Context.LOCATION_SERVICE))
-				.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
-		Location net = ((LocationManager) getSystemService(Context.LOCATION_SERVICE))
-				.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER);
-		Location best = net;
-		if (gps != null && net != null) {
-			if (gps.getTime() > net.getTime())
-				best = gps;
-			else if (net.hasAccuracy()) {
-				float[] results = new float[1];
-				Location.distanceBetween(net.getLatitude(), net.getLongitude(),
-						gps.getLatitude(), gps.getLongitude(), results);
-				if (results[0] < net.getAccuracy())
-					best = gps;
-			}
-
-		} else if (net == null)
-			best = gps;
-		return setPosition(best);
-	}
-
-	/**
-	 * Whether there is selected photo.
+	 * Адрес.
 	 * 
 	 * @return
 	 */
-	public boolean hasPhoto() {
-		return path != null;
-	}
-
-	public String getArea() {
-		return area;
-	}
-
-	public String getLocality() {
-		return locality;
-	}
-
 	public String getAddress() {
 		return address;
 	}
 
+	/**
+	 * Комментарий.
+	 * 
+	 * @return
+	 */
 	public String getComment() {
 		return comment;
 	}
 
 	/**
-	 * Sets location.
+	 * Собственное имя.
 	 * 
-	 * @param location
 	 * @return
 	 */
-	public boolean setPosition(Location location) {
-		this.location = location;
-		if (location == null) {
-			this.location = new Location("GPS");
-			this.location.setLatitude(55.693163);
-			this.location.setLongitude(37.707086);
-			area = "";
-			locality = "";
-			address = "";
-			comment = "";
-			// return false;
-		}
-		RedirctedHttpClient client = new RedirctedHttpClient();
-		HttpGet get;
-		HttpResponse response;
-		HttpEntity entity;
-		String content;
-		boolean done = false;
+	public String getFrom() {
+		return from;
+	}
+
+	/**
+	 * ФИО главы ГИБДД.
+	 * 
+	 * @return
+	 */
+	public String getTo() {
+		return to;
+	}
+
+	/**
+	 * Собственный почтовый адрес.
+	 * 
+	 * @return
+	 */
+	public String getPostAddress() {
+		return postAddress;
+	}
+
+	/**
+	 * Собственная подпись.
+	 * 
+	 * @return
+	 */
+	public String getSignature() {
+		return signature;
+	}
+
+	/**
+	 * pdf файл.
+	 * 
+	 * @return
+	 */
+	public File getPdfFile() {
+		return pdfFile;
+	}
+
+	/**
+	 * Возвращает прочитанный контент. Не забудьте вызвать
+	 * {@link #consumeEntity(HttpEntity)} после использования контента.
+	 * 
+	 * @param request
+	 * @return
+	 * @throws ExceptionWithResource
+	 */
+	private HttpEntity getResponse(HttpUriRequest request)
+			throws ExceptionWithResource {
 		try {
-			get = new HttpGet(String.format(YANDEX_URL, YANDEX_KEY,
-					getPoint(this.location.getLongitude()),
-					getPoint(this.location.getLatitude())));
-			response = client.execute(get);
 			if (LOG)
-				System.out.println("location form get: "
-						+ response.getStatusLine());
-			entity = response.getEntity();
-			if (entity != null) {
-				content = EntityUtils.toString(entity);
-				if (WRITE) {
-					FileOutputStream stream = openFileOutput(
-							FILE_NAME_FORMAT.format(new Date()) + ".json",
-							Context.MODE_WORLD_WRITEABLE);
-					stream.write(content.getBytes());
-				}
-				Object result = new JSONTokener(content).nextValue();
-				JSONArray array = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) result)
-						.get("response")).get("GeoObjectCollection"))
-						.get("featureMember");
-				if (array.length() == 1) {
-					JSONObject object = (JSONObject) (JSONObject) ((JSONObject) array
-							.get(0)).get("GeoObject");
-					this.address = object.getString("name");
-					JSONObject country = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) object
-							.get("metaDataProperty")).get("GeocoderMetaData"))
-							.get("AddressDetails")).get("Country");
-					JSONObject area;
-					try {
-						area = (JSONObject) country.get("AdministrativeArea");
-						this.area = area.getString("AdministrativeAreaName");
-					} catch (JSONException e) {
-						area = country;
-						this.area = "";
-					}
-					try {
-						JSONObject locality = (JSONObject) area.get("Locality");
-						this.locality = locality.getString("LocalityName");
-					} catch (JSONException e) {
-						this.locality = "";
-					}
-					done = true;
-				}
-			}
-			if (entity != null)
-				entity.consumeContent();
+				System.out.println("Request: "
+						+ request.getRequestLine().toString());
+			HttpResponse response = client.execute(request);
+			if (LOG)
+				System.out.println("Response: " + response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			if (entity == null)
+				throw new ExceptionWithResource(R.string.data_fail);
+			return entity;
 		} catch (ClientProtocolException e) {
 			if (LOG)
-
 				e.printStackTrace();
+			throw new ExceptionWithResource(R.string.connection_fail);
 		} catch (IOException e) {
 			if (LOG)
 				e.printStackTrace();
-		} catch (JSONException e) {
+			throw new ExceptionWithResource(R.string.io_fail);
+		}
+	}
+
+	/**
+	 * Освобождает ресурсы, занятые наполнение для запроса.
+	 * 
+	 * @param entity
+	 * @throws ExceptionWithResource
+	 */
+	private void consumeEntity(HttpEntity entity) throws ExceptionWithResource {
+		try {
+			entity.consumeContent();
+		} catch (IOException e) {
 			if (LOG)
 				e.printStackTrace();
-		}
-		if (done) {
-			return true;
-		} else {
-			location = null;
-			area = "";
-			locality = "";
-			address = "";
-			comment = "";
-			return false;
+			throw new ExceptionWithResource(R.string.io_fail);
 		}
 	}
 
 	/**
-	 * Whether there is selected photo.
+	 * Возвращает прочитанный контент.
 	 * 
+	 * @param request
 	 * @return
+	 * @throws ExceptionWithResource
 	 */
-	public boolean hasId() {
-		return id != null;
+	private String getContent(HttpUriRequest request)
+			throws ExceptionWithResource {
+		HttpEntity entity = getResponse(request);
+		try {
+			String content = EntityUtils.toString(entity);
+			if (WRITE) {
+				try {
+					FileOutputStream stream = openFileOutput(
+							FILE_NAME_FORMAT.format(new Date()) + ".raw",
+							Context.MODE_WORLD_WRITEABLE);
+					stream.write(content.getBytes());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			return content;
+		} catch (IOException e) {
+			if (LOG)
+				e.printStackTrace();
+			throw new ExceptionWithResource(R.string.io_fail);
+		} finally {
+			consumeEntity(entity);
+		}
 	}
 
 	/**
-	 * Returns result pdf file.
+	 * Добавляет наполнение в запрос и логирует действие. Не забудьте вызвать
+	 * {@link #consumeEntity(HttpEntity)} после отправки запроса.
 	 * 
-	 * @return
+	 * @param post
+	 * @param entity
 	 */
-	public File getPdf() {
-		return pdf;
+	private void setEntity(HttpPost post, HttpEntity entity) {
+		if (WRITE) {
+			try {
+				FileOutputStream stream;
+				stream = openFileOutput(FILE_NAME_FORMAT.format(new Date())
+						+ ".post", Context.MODE_WORLD_WRITEABLE);
+				entity.writeTo(stream);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			post.setEntity(entity);
+		}
 	}
 
 	/**
-	 * Logins with current login and password.
+	 * Возвращает прочитанный контент.
 	 * 
+	 * @param post
+	 * @param entity
 	 * @return
+	 * @throws ExceptionWithResource
 	 */
-	public boolean login() {
-		return login(login, password);
+	private String getContent(HttpPost post, HttpEntity entity)
+			throws ExceptionWithResource {
+		setEntity(post, entity);
+		try {
+			return getContent(post);
+		} finally {
+			consumeEntity(entity);
+		}
 	}
 
 	/**
-	 * Logins with new login and password. Save login and password on success.
+	 * Возвращает корневой DOM элемент.
+	 * 
+	 * @param post
+	 * @param entity
+	 * @return
+	 * @throws ExceptionWithResource
+	 */
+	private Element getElement(HttpPost post, HttpEntity entity)
+			throws ExceptionWithResource {
+		String content = getContent(post, entity);
+		Document dom;
+		try {
+			DocumentBuilder builder;
+			builder = documentBuilderFactory.newDocumentBuilder();
+			dom = builder.parse(new ByteArrayInputStream(content
+					.getBytes("UTF-8")));
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (ParserConfigurationException e) {
+			if (LOG)
+				e.printStackTrace();
+			throw new ExceptionWithResource(R.string.data_fail);
+		} catch (SAXException e) {
+			if (LOG)
+				e.printStackTrace();
+			throw new ExceptionWithResource(R.string.data_fail);
+		} catch (IOException e) {
+			if (LOG)
+				e.printStackTrace();
+			throw new ExceptionWithResource(R.string.io_fail);
+		}
+		Element element = dom.getDocumentElement();
+		NodeList nodeList = element.getElementsByTagName("error");
+		for (int index = 0; index < nodeList.getLength(); index++) {
+			Node node = nodeList.item(index);
+			String code = node.getAttributes().getNamedItem("code")
+					.getNodeValue();
+			System.out.println(code);
+			if (code.equals(WRONG_CREDENTIALS))
+				throw new ExceptionWithResource(R.string.auth_fail);
+		}
+		return element;
+	}
+
+	/**
+	 * Возвращает тело поста с данными из формы.
+	 * 
+	 * @param form
+	 *            сожержит имена аргументов и их значения
+	 * @return
+	 */
+	private HttpEntity getEntity(Map<String, String> form) {
+		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+		for (Entry<String, String> entry : form.entrySet())
+			nameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry
+					.getValue()));
+		UrlEncodedFormEntity encodedFormEntity;
+		try {
+			encodedFormEntity = new UrlEncodedFormEntity(nameValuePairs,
+					HTTP.UTF_8);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+		return encodedFormEntity;
+	}
+
+	/**
+	 * /** Возвращает тело поста с данными из формы и контентом из файлов.
+	 * 
+	 * @param form
+	 *            сожержит имена аргументов и их значения
+	 * @param files
+	 *            содержит имена файлов и путь до файла
+	 * @return
+	 */
+	private HttpEntity getEntity(Map<String, String> form,
+			Map<String, String> files) {
+		MultipartEntity multipartEntity = new MultipartEntity(
+				HttpMultipartMode.BROWSER_COMPATIBLE);
+		// Не следует передавать в конструктор boundary и charset.
+		try {
+			for (Entry<String, String> entry : form.entrySet())
+				multipartEntity.addPart(
+						entry.getKey(),
+						new StringBody(entry.getValue(), Charset
+								.forName(HTTP.UTF_8)));
+			for (Entry<String, String> entry : files.entrySet())
+				multipartEntity.addPart(entry.getKey(), new FileBody(new File(
+						entry.getValue()), "image/jpeg"));
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+		return multipartEntity;
+	}
+
+	/**
+	 * Проверка авторизации.
 	 * 
 	 * @param login
 	 * @param password
 	 * @return
+	 * @throws ExceptionWithResource
 	 */
-	public boolean login(String login, String password) {
-		client = new RedirctedHttpClient();
-		HttpGet get;
-		HttpPost post;
-		HttpResponse response;
-		HttpEntity entity;
-		Matcher matcher;
-		String content;
-		boolean done = false;
-		try {
-			get = new HttpGet(LOGIN);
-			response = client.execute(get);
-			if (LOG)
-				System.out.println("Login form get: "
-						+ response.getStatusLine());
-			entity = response.getEntity();
-			matcher = CSRF_PATTERN.matcher(EntityUtils.toString(entity));
-			if (matcher.matches())
-				csrf = matcher.group(1);
-			else
-				csrf = null;
-			if (entity != null)
-				entity.consumeContent();
-
-			post = new HttpPost(LOGIN);
-			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-			if (csrf == null) {
-				nameValuePairs.add(new BasicNameValuePair("AUTH_FORM", "Y"));
-				nameValuePairs.add(new BasicNameValuePair("TYPE", "AUTH"));
-				nameValuePairs.add(new BasicNameValuePair("backurl",
-						"/personal/holes.php"));
-				nameValuePairs.add(new BasicNameValuePair("USER_LOGIN", login));
-				nameValuePairs.add(new BasicNameValuePair("USER_PASSWORD",
-						password));
-				nameValuePairs.add(new BasicNameValuePair("Login", "Войти"));
-			} else {
-				nameValuePairs.add(new BasicNameValuePair(
-						"csrfmiddlewaretoken", csrf));
-				nameValuePairs.add(new BasicNameValuePair("USERNAME", login));
-				nameValuePairs
-						.add(new BasicNameValuePair("PASSWORD", password));
-			}
-			UrlEncodedFormEntity encodedFormEntity = new UrlEncodedFormEntity(
-					nameValuePairs, HTTP.UTF_8);
-
-			if (WRITE) {
-				FileOutputStream stream = openFileOutput(
-						FILE_NAME_FORMAT.format(new Date()) + ".post",
-						Context.MODE_WORLD_WRITEABLE);
-				encodedFormEntity.writeTo(stream);
-			}
-			post.setEntity(encodedFormEntity);
-			response = client.execute(post);
-			if (LOG)
-				System.out.println("Login form post: "
-						+ response.getStatusLine());
-			entity = response.getEntity();
-			if (entity != null) {
-				content = EntityUtils.toString(entity);
-				if (WRITE) {
-					FileOutputStream stream = openFileOutput(
-							FILE_NAME_FORMAT.format(new Date()) + ".html",
-							Context.MODE_WORLD_WRITEABLE);
-					stream.write(content.getBytes());
-				}
-				if (!LOGIN_PATTERN.matcher(content).matches())
-					done = true;
-			}
-			if (entity != null)
-				entity.consumeContent();
-		} catch (ClientProtocolException e) {
-			if (LOG)
-				e.printStackTrace();
-		} catch (IOException e) {
-			if (LOG)
-				e.printStackTrace();
+	public void authorize(String login, String password)
+			throws ExceptionWithResource {
+		synchronized (this) {
+			if (state != State.idle)
+				throw new ExceptionWithResource(R.string.status_fail);
+			state = State.authRequest;
 		}
-		if (done) {
+		try {
+			HttpPost post = new HttpPost(HOST + AUTHORIZE_PATH);
+			HashMap<String, String> form = new HashMap<String, String>();
+			form.put("login", login);
+			form.put("password", password);
+			getElement(post, getEntity(form));
 			this.login = login;
 			this.password = password;
 			SharedPreferences.Editor editor = settings.edit();
 			editor.putString(getString(R.string.login_key), login);
 			editor.putString(getString(R.string.password_key), password);
 			editor.commit();
-			return true;
-		} else {
-			shutdown();
-			return false;
-		}
-	}
-
-	private static class EmptyFileBody extends AbstractContentBody {
-		public EmptyFileBody() {
-			super("application/octet-stream");
-		}
-
-		@Override
-		public void writeTo(OutputStream out) throws IOException {
-			// Do noting
-		}
-
-		@Override
-		public String getCharset() {
-			return null;
-		}
-
-		@Override
-		public long getContentLength() {
-			return 0;
-		}
-
-		@Override
-		public String getTransferEncoding() {
-			return MIME.ENC_BINARY;
-		}
-
-		@Override
-		public String getFilename() {
-			return "";
-		}
-	}
-
-	public boolean add(String area, String locality, String address,
-			String comment) {
-		this.area = area;
-		this.locality = locality;
-		this.address = address;
-		this.comment = comment;
-		HttpPost post;
-		HttpResponse response;
-		HttpEntity entity;
-		Matcher matcher;
-		String content;
-		HashMap<String, String> attrs = new HashMap<String, String>();
-		boolean done = false;
-		try {
-			post = new HttpPost(ADD);
-			File file = new File(path);
-			MultipartEntity multipartEntity = new MultipartEntity(
-					HttpMultipartMode.BROWSER_COMPATIBLE);
-			// , null, Charset.forName(HTTP.UTF_8));
-			ContentBody contentBody = new FileBody(file, "image/jpeg");
-			String ID = "0";
-			String type = "holeonroad";
-			String mapaddress = locality + address;
-			String coordinates = getPoint(location.getLongitude()) + ","
-					+ getPoint(location.getLatitude());
-			multipartEntity.addPart("ID",
-					new StringBody(ID, Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("TYPE",
-					new StringBody(type, Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("ADDRESS",
-					new StringBody(address, Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("PHOTOS_0", contentBody);
-			multipartEntity.addPart("PHOTOS_1", new EmptyFileBody());
-			multipartEntity.addPart("PHOTOS_2", new EmptyFileBody());
-			multipartEntity.addPart("PHOTOS_3", new EmptyFileBody());
-			multipartEntity.addPart("PHOTOS_4", new EmptyFileBody());
-			multipartEntity.addPart("PHOTOS_5", new EmptyFileBody());
-			multipartEntity.addPart("PHOTOS_6", new EmptyFileBody());
-			multipartEntity.addPart("PHOTOS_7", new EmptyFileBody());
-			multipartEntity.addPart("PHOTOS_8", new EmptyFileBody());
-			multipartEntity.addPart("PHOTOS_9", new EmptyFileBody());
-			multipartEntity.addPart("COMMENT",
-					new StringBody(comment, Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("mapaddress", new StringBody(mapaddress,
-					Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("adr_subjectrf", new StringBody(area,
-					Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("adr_city", new StringBody(locality,
-					Charset.forName(HTTP.UTF_8)));
-			multipartEntity.addPart("COORDINATES", new StringBody(coordinates,
-					Charset.forName(HTTP.UTF_8)));
-			if (WRITE) {
-				FileOutputStream stream = openFileOutput(
-						FILE_NAME_FORMAT.format(new Date()) + ".post",
-						Context.MODE_WORLD_WRITEABLE);
-				multipartEntity.writeTo(stream);
+			synchronized (this) {
+				state = State.authComplited;
 			}
-			post.setEntity(multipartEntity);
-			response = client.execute(post);
-			if (LOG)
-				System.out.println("File form post: " + post.getRequestLine());
-			if (client.getRedirects().size() != 1)
-				throw new IOException("Redirect missed.");
-			matcher = ID_PATTERN.matcher(client.getRedirects().iterator()
-					.next());
-			if (!matcher.matches())
-				throw new IOException("Illegal redirect.");
-			id = matcher.group(1);
-			if (LOG)
-				System.out.println("ID: " + id);
-			entity = response.getEntity();
-			if (entity != null) {
-				content = EntityUtils.toString(entity);
-				if (WRITE) {
-					FileOutputStream stream = openFileOutput(
-							FILE_NAME_FORMAT.format(new Date()) + ".html",
-							Context.MODE_WORLD_WRITEABLE);
-					stream.write(content.getBytes());
-				}
-				done = true;
-				attrs.clear();
-				for (Entry<String, Pattern> entry : PDF_PATTERNS.entrySet()) {
-					matcher = entry.getValue().matcher(content);
-					if (matcher.matches()) {
-						attrs.put(entry.getKey(), matcher.group(1));
-						if (LOG)
-							System.out.println(entry.getKey() + ": "
-									+ matcher.group(1));
-					} else {
-						if (LOG)
-							System.out.println(entry.getKey() + ": not found");
-						done = false;
-					}
-				}
+		} catch (ExceptionWithResource e) {
+			synchronized (this) {
+				state = State.idle;
 			}
-			if (entity != null)
-				entity.consumeContent();
-		} catch (ClientProtocolException e) {
-			if (LOG)
-				e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			if (LOG)
-				e.printStackTrace();
-		} catch (IOException e) {
-			if (LOG)
-				e.printStackTrace();
+			throw e;
 		}
-		if (done) {
-			to = attrs.get("to");
-			from = attrs.get("from");
-			if (!"".equals(attrs.get("postaddress")))
-				postaddress = attrs.get("postaddress");
-			address = attrs.get("address");
-			signature = attrs.get("signature");
-			return true;
-		} else {
-			shutdown();
-			return false;
-		}
-	}
-
-	public String getFrom() {
-		return from;
-	}
-
-	public String getTo() {
-		return to;
-	}
-
-	public String getPostaddress() {
-		return postaddress;
-	}
-
-	public String getSignature() {
-		return signature;
-	}
-
-	public boolean pdf(String to, String from, String postaddress,
-			String address, String signature) {
-		this.to = to;
-		this.from = from;
-		this.postaddress = postaddress;
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString(getString(R.string.postaddress_key), postaddress);
-		editor.commit();
-		this.address = address;
-		this.signature = signature;
-		HttpPost post;
-		HttpResponse response;
-		HttpEntity entity;
-		boolean done = false;
-		try {
-			post = new HttpPost(String.format(PDF, id));
-			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-			nameValuePairs.add(new BasicNameValuePair("to", this.to));
-			nameValuePairs.add(new BasicNameValuePair("from", this.from));
-			nameValuePairs.add(new BasicNameValuePair("postaddress",
-					this.postaddress));
-			nameValuePairs.add(new BasicNameValuePair("address", this.address));
-			nameValuePairs.add(new BasicNameValuePair("signature",
-					this.signature));
-			UrlEncodedFormEntity encodedFormEntity = new UrlEncodedFormEntity(
-					nameValuePairs, HTTP.UTF_8);
-			if (WRITE) {
-				FileOutputStream stream = openFileOutput(
-						FILE_NAME_FORMAT.format(new Date()) + ".post",
-						Context.MODE_WORLD_WRITEABLE);
-				encodedFormEntity.writeTo(stream);
-			}
-			post.setEntity(encodedFormEntity);
-			response = client.execute(post);
-			if (LOG)
-				System.out
-						.println("PDF form post: " + response.getStatusLine());
-			entity = response.getEntity();
-			if (entity != null) {
-				pdf = new File(Environment.getExternalStorageDirectory(), id
-						+ ".pdf");
-				FileOutputStream stream = new FileOutputStream(pdf);
-				entity.writeTo(stream);
-				done = true;
-			}
-			if (entity != null)
-				entity.consumeContent();
-		} catch (ClientProtocolException e) {
-			if (LOG)
-				e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			if (LOG)
-				e.printStackTrace();
-		} catch (IOException e) {
-			if (LOG)
-				e.printStackTrace();
-		}
-		if (done) {
-			return true;
-		} else {
-			shutdown();
-			return false;
-		}
-	}
-
-	private String getPoint(double value) {
-		return Location.convert(value, Location.FORMAT_DEGREES).replace(',',
-				'.');
 	}
 
 	/**
-	 * Close connection.
+	 * Фотография сделана.
+	 * 
+	 * @param path
+	 * @throws ExceptionWithResource
 	 */
-	private void shutdown() {
-		if (client != null) {
-			client.getConnectionManager().shutdown();
-			client = null;
-			csrf = null;
-			id = null;
-			to = "";
-			pdf = null;
+	public void photo(String path) throws ExceptionWithResource {
+		synchronized (this) {
+			if (state != State.authComplited && state != State.photoComplited
+					&& state != State.geoComplited
+					&& state != State.holeComplited
+					&& state != State.headComplited
+					&& state != State.pdfComplited)
+				throw new ExceptionWithResource(R.string.status_fail);
+			state = State.photoComplited;
 		}
+		this.path = path;
+	}
+
+	/**
+	 * Определение текущего местоположения и геокодинг.
+	 * 
+	 * @throws ExceptionWithResource
+	 */
+	public void geo() throws ExceptionWithResource {
+		synchronized (this) {
+			if (state != State.photoComplited && state != State.geoComplited
+					&& state != State.holeComplited
+					&& state != State.headComplited
+					&& state != State.pdfComplited)
+				throw new ExceptionWithResource(R.string.status_fail);
+			state = State.geoRequest;
+		}
+		try {
+			address = "";
+			comment = "";
+
+			// Получение гео данных
+			Location gps = ((LocationManager) getSystemService(Context.LOCATION_SERVICE))
+					.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
+			Location net = ((LocationManager) getSystemService(Context.LOCATION_SERVICE))
+					.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER);
+			location = net;
+			// Определение лучших данных
+			if (gps != null && net != null) {
+				if (gps.getTime() > net.getTime())
+					location = gps;
+				else if (net.hasAccuracy()) {
+					float[] results = new float[1];
+					Location.distanceBetween(net.getLatitude(),
+							net.getLongitude(), gps.getLatitude(),
+							gps.getLongitude(), results);
+					if (results[0] < net.getAccuracy())
+						location = gps;
+				}
+			} else if (net == null)
+				location = gps;
+			// TODO: предусмотреть определение координат, по введенному
+			// пользователем адресу.
+			if (location == null) {
+				location = new Location("GPS");
+				location.setLatitude(55.693163);
+				location.setLongitude(37.707086);
+				if (!DEBUG)
+					return;
+			}
+
+			HttpGet get = new HttpGet(String.format(YANDEX_URL, YANDEX_KEY,
+					getPoint(location.getLongitude()),
+					getPoint(location.getLatitude())));
+			String content = getContent(get);
+			Object json = new JSONTokener(content).nextValue();
+			JSONArray array = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) json)
+					.get("response")).get("GeoObjectCollection"))
+					.get("featureMember");
+			if (array.length() != 1)
+				throw new ExceptionWithResource(R.string.geo_fail);
+			JSONObject object = (JSONObject) (JSONObject) ((JSONObject) array
+					.get(0)).get("GeoObject");
+			this.address = ((JSONObject) ((JSONObject) object
+					.get("metaDataProperty")).get("GeocoderMetaData"))
+					.getString("text");
+		} catch (JSONException e) {
+			if (LOG)
+				e.printStackTrace();
+			throw new ExceptionWithResource(R.string.data_fail);
+		} finally {
+			synchronized (this) {
+				state = State.geoComplited;
+			}
+		}
+	}
+
+	/**
+	 * Отправка дефекта.
+	 * 
+	 * @param address
+	 * @param comment
+	 * @throws ExceptionWithResource
+	 */
+	public void hole(String address, String comment)
+			throws ExceptionWithResource {
+		synchronized (this) {
+			if (state != State.geoComplited && state != State.holeComplited
+					&& state != State.headComplited
+					&& state != State.pdfComplited)
+				throw new ExceptionWithResource(R.string.status_fail);
+			state = State.holeRequest;
+		}
+		this.address = address;
+		this.comment = comment;
+		try {
+			HttpPost post = new HttpPost(HOST + HOLE_PATH);
+			HashMap<String, String> form = new HashMap<String, String>();
+			form.put("login", login);
+			form.put("password", password);
+			form.put("address", address);
+			form.put("latitude", getPoint(location.getLatitude()));
+			form.put("longitude", getPoint(location.getLongitude()));
+			form.put("comment", comment);
+			form.put("type", type.toString());
+			HashMap<String, String> files = new HashMap<String, String>();
+			files.put("photo", path);
+			Element element = getElement(post, getEntity(form, files));
+			NodeList nodeList = element.getElementsByTagName("callresult");
+			if (nodeList.getLength() != 1)
+				throw new ExceptionWithResource(R.string.hole_fail);
+			Node node = nodeList.item(0);
+			if (!"1".equals(node.getAttributes().getNamedItem("result")
+					.getNodeValue()))
+				throw new ExceptionWithResource(R.string.hole_fail);
+			id = node.getAttributes().getNamedItem("inserteddefectid")
+					.getNodeValue();
+			synchronized (this) {
+				state = State.holeComplited;
+			}
+		} catch (ExceptionWithResource e) {
+			synchronized (this) {
+				state = State.photoComplited;
+			}
+		}
+	}
+
+	/**
+	 * Запрос главы района.
+	 * 
+	 * @throws ExceptionWithResource
+	 */
+	public void head() throws ExceptionWithResource {
+		synchronized (this) {
+			if (state != State.holeComplited && state != State.headComplited
+					&& state != State.pdfComplited)
+				throw new ExceptionWithResource(R.string.status_fail);
+			state = State.headRequest;
+		}
+		try {
+			HttpPost post = new HttpPost(HOST + String.format(HEAD_PATH, id));
+			HashMap<String, String> form = new HashMap<String, String>();
+			form.put("login", login);
+			form.put("password", password);
+			Element element = getElement(post, getEntity(form));
+			NodeList nodeList = element.getElementsByTagName("gibddhead");
+			if (nodeList.getLength() != 1)
+				throw new ExceptionWithResource(R.string.head_fail);
+			Node node = nodeList.item(0);
+			nodeList = node.getChildNodes();
+			to = "";
+			for (int index = 0; index < nodeList.getLength(); index++) {
+				node = nodeList.item(index);
+				if (node.getNodeName().equals("dative")) {
+					String toPost = node.getAttributes().getNamedItem("post")
+							.getNodeValue();
+					StringBuffer buffer = new StringBuffer(toPost);
+					if (buffer.length() > 0)
+						buffer.append(", ");
+					NodeList chars = node.getChildNodes();
+					for (int piece = 0; piece < chars.getLength(); piece++)
+						buffer.append(chars.item(piece).getNodeValue());
+					to = buffer.toString();
+					break;
+				}
+			}
+			if ("".equals(to))
+				throw new ExceptionWithResource(R.string.head_fail);
+		} finally {
+			synchronized (this) {
+				state = State.headComplited;
+			}
+		}
+	}
+
+	public void pdf(String to, String from, String postAddress, String address,
+			String signature) throws ExceptionWithResource {
+		synchronized (this) {
+			if (state != State.headComplited && state != State.pdfComplited)
+				throw new ExceptionWithResource(R.string.status_fail);
+			state = State.pdfRequest;
+		}
+		this.address = address;
+		this.to = to;
+		this.from = from;
+		this.signature = signature;
+		this.postAddress = postAddress;
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString(getString(R.string.from_key), from);
+		editor.putString(getString(R.string.signature_key), signature);
+		editor.putString(getString(R.string.postaddress_key), postAddress);
+		editor.commit();
+		try {
+			HttpPost post = new HttpPost(HOST + String.format(PDF_PATH, id));
+			HashMap<String, String> form = new HashMap<String, String>();
+			form.put("login", login);
+			form.put("password", password);
+			form.put("to", this.to);
+			form.put("from", this.from);
+			form.put("postaddress", this.postAddress);
+			form.put("holeaddress", this.address);
+			form.put("signature", this.signature);
+			HttpEntity postEntity = getEntity(form);
+			setEntity(post, postEntity);
+			HttpEntity postResponse;
+			try {
+				postResponse = getResponse(post);
+			} finally {
+				consumeEntity(postEntity);
+			}
+			pdfFile = new File(Environment.getExternalStorageDirectory(), id
+					+ ".pdf");
+			FileOutputStream stream;
+			try {
+				stream = new FileOutputStream(pdfFile);
+				postResponse.writeTo(stream);
+			} catch (IOException e) {
+				throw new ExceptionWithResource(R.string.pdf_fail);
+			}
+			consumeEntity(postResponse);
+			synchronized (this) {
+				state = State.headComplited;
+			}
+		} catch (ExceptionWithResource e) {
+			synchronized (this) {
+				state = State.pdfComplited;
+			}
+		}
+	}
+
+	private static String getPoint(double value) {
+		return Location.convert(value, Location.FORMAT_DEGREES).replace(',',
+				'.');
 	}
 }

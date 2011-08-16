@@ -12,48 +12,24 @@
     <TextView
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
-        android:text="Регион"
-    />
-    <EditText
-        android:layout_width="fill_parent" 
-        android:layout_height="wrap_content"
-        android:id="@+id/area"
-        android:text=""
-        android:singleLine="true"
-    /> 
-    <TextView
-        android:layout_width="fill_parent" 
-        android:layout_height="wrap_content" 
-        android:text="Город"
-    />
-    <EditText
-        android:layout_width="fill_parent" 
-        android:layout_height="wrap_content"
-        android:id="@+id/locality"
-        android:text=""
-        android:singleLine="true"
-    /> 
-    <TextView
-        android:layout_width="fill_parent" 
-        android:layout_height="wrap_content" 
-        android:text="Адрес дефекта"
+        android:text="@string/address_label"
     />
     <EditText
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content"
         android:id="@+id/address"
-        android:text=""
-        android:singleLine="true"
+        android:minLines="2"
     /> 
     <TextView
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
-        android:text="Комментарий"
+        android:text="@string/comment_label"
     />
     <EditText
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content"
         android:id="@+id/comment"
+        android:minLines="2"
     /> 
 	<LinearLayout
 	    android:orientation="horizontal"

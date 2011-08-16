@@ -20,7 +20,7 @@
 	    	android:scaleType="fitXY"
 	    	android:adjustViewBounds="true"
 	       	android:clickable="true"
-	       	android:id="@+id/photo"
+	       	android:id="@+id/photo_image"
         	android:src="@drawable/red"
         />
 	    <TextView
@@ -29,7 +29,7 @@
         	android:layout_weight="3" 
         	android:gravity="center_horizontal" 
             android:id="@+id/photo_label"
-	    	android:text="@string/photo"
+	    	android:text="@string/photo_label"
 	    	android:textColor="?android:attr/textColorPrimary"
 	    />
 	</LinearLayout>
@@ -47,7 +47,7 @@
             android:scaleType="fitXY"
             android:adjustViewBounds="true"
             android:clickable="true"
-            android:id="@+id/send"
+            android:id="@+id/hole_image"
             android:src="@drawable/yellow"
         />
 	    <TextView
@@ -55,8 +55,8 @@
 	    	android:layout_height="fill_parent"
         	android:layout_weight="3"
         	android:gravity="center_horizontal" 
-            android:id="@+id/send_label"
-	    	android:text="@string/send"
+            android:id="@+id/hole_label"
+	    	android:text="@string/hole_label"
 	    	android:textColor="?android:attr/textColorPrimary"
 	    />
 	</LinearLayout>
@@ -74,7 +74,7 @@
             android:scaleType="fitXY"
             android:adjustViewBounds="true"
             android:clickable="true"
-            android:id="@+id/get"
+            android:id="@+id/pdf_image"
             android:src="@drawable/green"
         />
 	    <TextView
@@ -82,8 +82,8 @@
 	    	android:layout_height="fill_parent"
         	android:layout_weight="3"
         	android:gravity="center_horizontal" 
-            android:id="@+id/get_label"
-	    	android:text="@string/get"
+            android:id="@+id/pdf_label"
+	    	android:text="@string/pdf_label"
 	    	android:textColor="?android:attr/textColorPrimary"
 	    />
 	</LinearLayout>

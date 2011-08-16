@@ -1,27 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+<!-- Общее -->
     <string name="app_name">РосЯма</string>
+<!-- Авторизация -->
     <string name="login">Логин</string>
-    <string name="login_progress">Идет авторизация. Пожалуйста подождите ...</string>
-    <string name="login_fail">Не удалось авторизоваться</string>
     <string name="password">Пароль</string>
     <string name="enter">Вход</string>
     <string name="register">Регистрация</string>
-    <string name="preferences">Настройки</string>
-    <string name="photo">Сфотографировать</string>
-    <string name="photo_progress">Идет определение адреса. Пожалуйста подождите ...</string>
-    <string name="photo_help">Сделайте фотографию и мы постараемся определить её адрес. Включение GPS поможет повысить точность.</string>
-    <string name="send">Отправить</string>
-    <string name="send_fail">Не удалось отправить яму</string>
-    <string name="send_progress">Идет отправка запроса. Пожалуйста подождите ...</string>
-    <string name="send_help">Проверьте адрес и мы отправим заявку на сайт rosyama.ru</string>
-    <string name="get">Получить заявление</string>
-    <string name="get_progress">Идет получение заявления. Пожалуйста подождите ...</string>
-    <string name="get_help">Проверьте реквизиты и мы загрузим заявление в формате PDF. Вы сможете отправить его на свою электронную почту.</string>
-    <string name="get_fail">Не сформировать заявление. Попробуйте зайти через сайт.</string>
+<!-- Главное окно -->
+    <string name="photo_label">Сфотографировать</string>
+    <string name="photo_help">Сделайте фотографию и мы постараемся определить её адрес. Включение GPS и WiFi поможет повысить точность.</string>
+    <string name="hole_label">Отправить дефект</string>
+    <string name="hole_help">Проверьте адрес и мы отправим заявку на сайт rosyama.ru</string>
+    <string name="pdf_label">Получить заявление</string>
+    <string name="pdf_help">Проверьте реквизиты и мы загрузим заявление в формате PDF. Вы сможете отправить его, например, на свою электронную почту.</string>
     <string name="email">Отправка заявления</string>
+    <string name="preferences">Настройки</string>
+<!-- Предпросмотр дефекта -->
+    <string name="address_label">Адрес дефекта</string>
+    <string name="comment_label">Комментарий</string>
+    <string name="send">Отправить</string>
     <string name="cancel">Отмена</string>
+<!-- PDF -->
+    <string name="to_label">Начальнику ГИБДД</string>
+    <string name="from_label">Заявитель (ваше ФИО)</string>
+    <string name="postaddress_label">Почтовый адрес заявителя с индексом (для переписки и получения уведомлений)</string>
+    <string name="signature_label">Подпись (Фамилия Инициалы)</string>
+<!-- Сообщения -->    
+    <string name="status_fail">Приложение выполняет предыдущий запрос, подождите пожалуйста.</string>
+    <string name="connection_fail">Ошибка подключения.</string>
+    <string name="io_fail">Ошибка передачи данных.</string>
+    <string name="data_fail">Ошибка при анализе данных.</string>
+    <string name="auth_request">Идет авторизация. Пожалуйста подождите ...</string>
+    <string name="auth_fail">Не удалось авторизоваться</string>
+    <string name="geo_request">Идет определение адреса. Пожалуйста подождите ...</string>
+    <string name="geo_fail">Ошибка определения местоположения.</string>
+    <string name="photo_request">Идет обработка изображения. Пожалуйста подождите ...</string>
+    <string name="photo_fail">Ошибка обработки изображения.</string>
+    <string name="hole_request">Идет отправка дефекта. Пожалуйста подождите ...</string>
+    <string name="hole_fail">Не удалось отправить дефект.</string>
+    <string name="head_request">Идет поиск главы ГИБДД. Пожалуйста подождите ...</string>
+    <string name="head_fail">Не удалось найти главу ГИБДД.</string>
+    <string name="pdf_request">Идет получение заявления. Пожалуйста подождите ...</string>
+    <string name="pdf_fail">Не удалось сформировать заявление. Попробуйте зайти через сайт.</string>
+<!-- Сообщения -->    
     <string name="login_key">login</string>
     <string name="password_key">password</string>
+    <string name="from_key">from</string>
+    <string name="signature_key">signature</string>
     <string name="postaddress_key">postaddress</string>
 </resources>

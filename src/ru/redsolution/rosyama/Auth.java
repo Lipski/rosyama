@@ -1,5 +1,6 @@
 package ru.redsolution.rosyama;
 
+import ru.redsolution.rosyama.Rosyama.ExceptionWithResource;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -11,11 +12,11 @@ import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class Login extends Activity implements OnClickListener {
+public class Auth extends Activity implements OnClickListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.login);
+		setContentView(R.layout.auth);
 		findViewById(R.id.enter).setOnClickListener(this);
 		findViewById(R.id.register).setOnClickListener(this);
 	}
@@ -31,9 +32,8 @@ public class Login extends Activity implements OnClickListener {
 							.toString());
 			break;
 		case R.id.register:
-			intent = new Intent(
-					Intent.ACTION_VIEW,
-					Uri.parse("http://rosyama.ru/personal/holes.php?register=yes"));
+			intent = new Intent(Intent.ACTION_VIEW,
+					Uri.parse(Rosyama.REGISTER_URL));
 			startActivity(intent);
 			break;
 		}
@@ -45,8 +45,8 @@ public class Login extends Activity implements OnClickListener {
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			progressDialog = new ProgressDialog(Login.this);
-			progressDialog.setMessage(getString(R.string.login_progress));
+			progressDialog = new ProgressDialog(Auth.this);
+			progressDialog.setMessage(getString(R.string.auth_request));
 			progressDialog.setIndeterminate(true);
 			progressDialog.setCancelable(false);
 			progressDialog.show();
@@ -55,8 +55,11 @@ public class Login extends Activity implements OnClickListener {
 		@Override
 		protected String doInBackground(String... params) {
 			Rosyama rosyama = (Rosyama) getApplication();
-			if (!rosyama.login(params[0], params[1]))
-				return getString(R.string.login_fail);
+			try {
+				rosyama.authorize(params[0], params[1]);
+			} catch (ExceptionWithResource e) {
+				return getString(e.getResourceID());
+			}
 			return null;
 		}
 
@@ -69,11 +72,11 @@ public class Login extends Activity implements OnClickListener {
 				return;
 			}
 			if (result == null) {
-				Intent intent = new Intent(Login.this, Main.class);
+				Intent intent = new Intent(Auth.this, Main.class);
 				startActivity(intent);
 				finish();
 			} else
-				Toast.makeText(Login.this, result, Toast.LENGTH_LONG).show();
+				Toast.makeText(Auth.this, result, Toast.LENGTH_LONG).show();
 		}
 	}
 }

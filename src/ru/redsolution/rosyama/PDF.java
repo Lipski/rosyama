@@ -1,5 +1,6 @@
 package ru.redsolution.rosyama;
 
+import ru.redsolution.rosyama.Rosyama.ExceptionWithResource;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -11,7 +12,7 @@ import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class Form extends Activity implements OnClickListener {
+public class PDF extends Activity implements OnClickListener {
 	private static final String SAVED_TO = "SAVED_TO";
 	private static final String SAVED_FROM = "SAVED_FROM";
 	private static final String SAVED_POSTADDRESS = "SAVED_POSTADDRESS";
@@ -29,9 +30,9 @@ public class Form extends Activity implements OnClickListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.form);
+		setContentView(R.layout.pdf);
 		rosyama = (Rosyama) getApplication();
-		findViewById(R.id.get).setOnClickListener(this);
+		findViewById(R.id.send).setOnClickListener(this);
 		findViewById(R.id.cancel).setOnClickListener(this);
 		to = (EditText) findViewById(R.id.to);
 		from = (EditText) findViewById(R.id.from);
@@ -49,7 +50,7 @@ public class Form extends Activity implements OnClickListener {
 			to.setText(rosyama.getTo());
 			from.setText(rosyama.getFrom());
 			address.setText(rosyama.getAddress());
-			postaddress.setText(rosyama.getPostaddress());
+			postaddress.setText(rosyama.getPostAddress());
 			signature.setText(rosyama.getSignature());
 		}
 	}
@@ -67,7 +68,7 @@ public class Form extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
-		case R.id.get:
+		case R.id.send:
 			new GetTask().execute(to.getText().toString(), from.getText()
 					.toString(), postaddress.getText().toString(), address
 					.getText().toString(), signature.getText().toString());
@@ -84,8 +85,8 @@ public class Form extends Activity implements OnClickListener {
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			progressDialog = new ProgressDialog(Form.this);
-			progressDialog.setMessage(getString(R.string.get_progress));
+			progressDialog = new ProgressDialog(PDF.this);
+			progressDialog.setMessage(getString(R.string.pdf_request));
 			progressDialog.setIndeterminate(true);
 			progressDialog.setCancelable(false);
 			progressDialog.show();
@@ -93,10 +94,12 @@ public class Form extends Activity implements OnClickListener {
 
 		@Override
 		protected String doInBackground(String... params) {
-			Rosyama rosyama = (Rosyama) getApplication();
-			if (!rosyama.pdf(params[0], params[1], params[2], params[3],
-					params[4]))
-				return getString(R.string.get_fail);
+			try {
+				((Rosyama) getApplication()).pdf(params[0], params[1],
+						params[2], params[3], params[4]);
+			} catch (ExceptionWithResource e) {
+				return getString(e.getResourceID());
+			}
 			return null;
 		}
 
@@ -111,13 +114,14 @@ public class Form extends Activity implements OnClickListener {
 			if (result == null) {
 				Intent intent = new Intent(android.content.Intent.ACTION_SEND);
 				intent.setType("text/plain");
-				Uri uri = Uri.fromFile(((Rosyama) getApplication()).getPdf());
+				Uri uri = Uri.fromFile(((Rosyama) getApplication())
+						.getPdfFile());
 				intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
 				startActivity(Intent.createChooser(intent,
 						getString(R.string.email)));
 				finish();
 			} else
-				Toast.makeText(Form.this, result, Toast.LENGTH_LONG).show();
+				Toast.makeText(PDF.this, result, Toast.LENGTH_LONG).show();
 		}
 	}
 }
