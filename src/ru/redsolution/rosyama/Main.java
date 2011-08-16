@@ -3,7 +3,7 @@ package ru.redsolution.rosyama;
 import java.io.File;
 import java.util.Date;
 
-import ru.redsolution.rosyama.Rosyama.ExceptionWithResource;
+import ru.redsolution.rosyama.Rosyama.LocalizedException;
 import ru.redsolution.rosyama.Rosyama.State;
 import android.app.Activity;
 import android.app.Dialog;
@@ -196,7 +196,7 @@ public class Main extends Activity implements OnClickListener,
 			try {
 				((Rosyama) getApplication()).photo(params[0]);
 				((Rosyama) getApplication()).geo();
-			} catch (ExceptionWithResource e) {
+			} catch (LocalizedException e) {
 				return getString(e.getResourceID());
 			}
 			return null;

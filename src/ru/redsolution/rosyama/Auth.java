@@ -1,6 +1,6 @@
 package ru.redsolution.rosyama;
 
-import ru.redsolution.rosyama.Rosyama.ExceptionWithResource;
+import ru.redsolution.rosyama.Rosyama.LocalizedException;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -57,7 +57,7 @@ public class Auth extends Activity implements OnClickListener {
 			Rosyama rosyama = (Rosyama) getApplication();
 			try {
 				rosyama.authorize(params[0], params[1]);
-			} catch (ExceptionWithResource e) {
+			} catch (LocalizedException e) {
 				return getString(e.getResourceID());
 			}
 			return null;

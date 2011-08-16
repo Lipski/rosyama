@@ -1,6 +1,6 @@
 package ru.redsolution.rosyama;
 
-import ru.redsolution.rosyama.Rosyama.ExceptionWithResource;
+import ru.redsolution.rosyama.Rosyama.LocalizedException;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -97,7 +97,7 @@ public class PDF extends Activity implements OnClickListener {
 			try {
 				((Rosyama) getApplication()).pdf(params[0], params[1],
 						params[2], params[3], params[4]);
-			} catch (ExceptionWithResource e) {
+			} catch (LocalizedException e) {
 				return getString(e.getResourceID());
 			}
 			return null;

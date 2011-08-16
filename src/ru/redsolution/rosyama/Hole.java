@@ -1,6 +1,6 @@
 package ru.redsolution.rosyama;
 
-import ru.redsolution.rosyama.Rosyama.ExceptionWithResource;
+import ru.redsolution.rosyama.Rosyama.LocalizedException;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
@@ -75,7 +75,7 @@ public class Hole extends Activity implements OnClickListener {
 			try {
 				((Rosyama) getApplication()).hole(params[0], params[1]);
 				((Rosyama) getApplication()).head();
-			} catch (ExceptionWithResource e) {
+			} catch (LocalizedException e) {
 				return getString(e.getResourceID());
 			}
 			return null;

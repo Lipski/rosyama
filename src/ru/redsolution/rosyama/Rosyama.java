@@ -234,11 +234,11 @@ public class Rosyama extends Application {
 	 * @author alexander.ivanov
 	 * 
 	 */
-	public class ExceptionWithResource extends Exception {
+	public class LocalizedException extends Exception {
 		private static final long serialVersionUID = 1L;
 		private final int resourceID;
 
-		public ExceptionWithResource(int resourceID) {
+		public LocalizedException(int resourceID) {
 			this.resourceID = resourceID;
 		}
 
@@ -307,6 +307,11 @@ public class Rosyama extends Application {
 	 * Неправильный логин и/или пароль.
 	 */
 	private static final Object WRONG_CREDENTIALS = "WRONG_CREDENTIALS";
+
+	/**
+	 * Требуется авторизация (не прошла авторизация).
+	 */
+	private static final Object AUTHORIZATION_REQUIRED = "AUTHORIZATION_REQUIRED";
 
 	/**
 	 * Состояние приложения.
@@ -506,10 +511,10 @@ public class Rosyama extends Application {
 	 * 
 	 * @param request
 	 * @return
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
 	private HttpEntity getResponse(HttpUriRequest request)
-			throws ExceptionWithResource {
+			throws LocalizedException {
 		try {
 			if (LOG)
 				System.out.println("Request: "
@@ -519,16 +524,16 @@ public class Rosyama extends Application {
 				System.out.println("Response: " + response.getStatusLine());
 			HttpEntity entity = response.getEntity();
 			if (entity == null)
-				throw new ExceptionWithResource(R.string.data_fail);
+				throw new LocalizedException(R.string.data_fail);
 			return entity;
 		} catch (ClientProtocolException e) {
 			if (LOG)
 				e.printStackTrace();
-			throw new ExceptionWithResource(R.string.connection_fail);
+			throw new LocalizedException(R.string.connection_fail);
 		} catch (IOException e) {
 			if (LOG)
 				e.printStackTrace();
-			throw new ExceptionWithResource(R.string.io_fail);
+			throw new LocalizedException(R.string.io_fail);
 		}
 	}
 
@@ -536,15 +541,15 @@ public class Rosyama extends Application {
 	 * Освобождает ресурсы, занятые наполнение для запроса.
 	 * 
 	 * @param entity
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
-	private void consumeEntity(HttpEntity entity) throws ExceptionWithResource {
+	private void consumeEntity(HttpEntity entity) throws LocalizedException {
 		try {
 			entity.consumeContent();
 		} catch (IOException e) {
 			if (LOG)
 				e.printStackTrace();
-			throw new ExceptionWithResource(R.string.io_fail);
+			throw new LocalizedException(R.string.io_fail);
 		}
 	}
 
@@ -553,10 +558,9 @@ public class Rosyama extends Application {
 	 * 
 	 * @param request
 	 * @return
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
-	private String getContent(HttpUriRequest request)
-			throws ExceptionWithResource {
+	private String getContent(HttpUriRequest request) throws LocalizedException {
 		HttpEntity entity = getResponse(request);
 		try {
 			String content = EntityUtils.toString(entity);
@@ -574,7 +578,7 @@ public class Rosyama extends Application {
 		} catch (IOException e) {
 			if (LOG)
 				e.printStackTrace();
-			throw new ExceptionWithResource(R.string.io_fail);
+			throw new LocalizedException(R.string.io_fail);
 		} finally {
 			consumeEntity(entity);
 		}
@@ -607,10 +611,10 @@ public class Rosyama extends Application {
 	 * @param post
 	 * @param entity
 	 * @return
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
 	private String getContent(HttpPost post, HttpEntity entity)
-			throws ExceptionWithResource {
+			throws LocalizedException {
 		setEntity(post, entity);
 		try {
 			return getContent(post);
@@ -625,10 +629,10 @@ public class Rosyama extends Application {
 	 * @param post
 	 * @param entity
 	 * @return
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
 	private Element getElement(HttpPost post, HttpEntity entity)
-			throws ExceptionWithResource {
+			throws LocalizedException {
 		String content = getContent(post, entity);
 		Document dom;
 		try {
@@ -641,15 +645,15 @@ public class Rosyama extends Application {
 		} catch (ParserConfigurationException e) {
 			if (LOG)
 				e.printStackTrace();
-			throw new ExceptionWithResource(R.string.data_fail);
+			throw new LocalizedException(R.string.data_fail);
 		} catch (SAXException e) {
 			if (LOG)
 				e.printStackTrace();
-			throw new ExceptionWithResource(R.string.data_fail);
+			throw new LocalizedException(R.string.data_fail);
 		} catch (IOException e) {
 			if (LOG)
 				e.printStackTrace();
-			throw new ExceptionWithResource(R.string.io_fail);
+			throw new LocalizedException(R.string.io_fail);
 		}
 		Element element = dom.getDocumentElement();
 		NodeList nodeList = element.getElementsByTagName("error");
@@ -659,7 +663,9 @@ public class Rosyama extends Application {
 					.getNodeValue();
 			System.out.println(code);
 			if (code.equals(WRONG_CREDENTIALS))
-				throw new ExceptionWithResource(R.string.auth_fail);
+				throw new LocalizedException(R.string.auth_fail);
+			if (code.equals(AUTHORIZATION_REQUIRED))
+				throw new LocalizedException(R.string.auth_required);
 		}
 		return element;
 	}
@@ -721,13 +727,18 @@ public class Rosyama extends Application {
 	 * @param login
 	 * @param password
 	 * @return
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
 	public void authorize(String login, String password)
-			throws ExceptionWithResource {
+			throws LocalizedException {
 		synchronized (this) {
-			if (state != State.idle)
-				throw new ExceptionWithResource(R.string.status_fail);
+			if (state != State.idle && state != State.authComplited
+					&& state != State.photoComplited
+					&& state != State.geoComplited
+					&& state != State.holeComplited
+					&& state != State.headComplited
+					&& state != State.pdfComplited)
+				throw new LocalizedException(R.string.status_fail);
 			state = State.authRequest;
 		}
 		try {
@@ -745,7 +756,7 @@ public class Rosyama extends Application {
 			synchronized (this) {
 				state = State.authComplited;
 			}
-		} catch (ExceptionWithResource e) {
+		} catch (LocalizedException e) {
 			synchronized (this) {
 				state = State.idle;
 			}
@@ -757,16 +768,16 @@ public class Rosyama extends Application {
 	 * Фотография сделана.
 	 * 
 	 * @param path
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
-	public void photo(String path) throws ExceptionWithResource {
+	public void photo(String path) throws LocalizedException {
 		synchronized (this) {
 			if (state != State.authComplited && state != State.photoComplited
 					&& state != State.geoComplited
 					&& state != State.holeComplited
 					&& state != State.headComplited
 					&& state != State.pdfComplited)
-				throw new ExceptionWithResource(R.string.status_fail);
+				throw new LocalizedException(R.string.status_fail);
 			state = State.photoComplited;
 		}
 		this.path = path;
@@ -775,15 +786,15 @@ public class Rosyama extends Application {
 	/**
 	 * Определение текущего местоположения и геокодинг.
 	 * 
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
-	public void geo() throws ExceptionWithResource {
+	public void geo() throws LocalizedException {
 		synchronized (this) {
 			if (state != State.photoComplited && state != State.geoComplited
 					&& state != State.holeComplited
 					&& state != State.headComplited
 					&& state != State.pdfComplited)
-				throw new ExceptionWithResource(R.string.status_fail);
+				throw new LocalizedException(R.string.status_fail);
 			state = State.geoRequest;
 		}
 		try {
@@ -829,7 +840,7 @@ public class Rosyama extends Application {
 					.get("response")).get("GeoObjectCollection"))
 					.get("featureMember");
 			if (array.length() != 1)
-				throw new ExceptionWithResource(R.string.geo_fail);
+				throw new LocalizedException(R.string.geo_fail);
 			JSONObject object = (JSONObject) (JSONObject) ((JSONObject) array
 					.get(0)).get("GeoObject");
 			this.address = ((JSONObject) ((JSONObject) object
@@ -838,7 +849,7 @@ public class Rosyama extends Application {
 		} catch (JSONException e) {
 			if (LOG)
 				e.printStackTrace();
-			throw new ExceptionWithResource(R.string.data_fail);
+			throw new LocalizedException(R.string.data_fail);
 		} finally {
 			synchronized (this) {
 				state = State.geoComplited;
@@ -851,15 +862,14 @@ public class Rosyama extends Application {
 	 * 
 	 * @param address
 	 * @param comment
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
-	public void hole(String address, String comment)
-			throws ExceptionWithResource {
+	public void hole(String address, String comment) throws LocalizedException {
 		synchronized (this) {
 			if (state != State.geoComplited && state != State.holeComplited
 					&& state != State.headComplited
 					&& state != State.pdfComplited)
-				throw new ExceptionWithResource(R.string.status_fail);
+				throw new LocalizedException(R.string.status_fail);
 			state = State.holeRequest;
 		}
 		this.address = address;
@@ -879,33 +889,34 @@ public class Rosyama extends Application {
 			Element element = getElement(post, getEntity(form, files));
 			NodeList nodeList = element.getElementsByTagName("callresult");
 			if (nodeList.getLength() != 1)
-				throw new ExceptionWithResource(R.string.hole_fail);
+				throw new LocalizedException(R.string.hole_fail);
 			Node node = nodeList.item(0);
 			if (!"1".equals(node.getAttributes().getNamedItem("result")
 					.getNodeValue()))
-				throw new ExceptionWithResource(R.string.hole_fail);
+				throw new LocalizedException(R.string.hole_fail);
 			id = node.getAttributes().getNamedItem("inserteddefectid")
 					.getNodeValue();
 			synchronized (this) {
 				state = State.holeComplited;
 			}
-		} catch (ExceptionWithResource e) {
+		} catch (LocalizedException e) {
 			synchronized (this) {
-				state = State.photoComplited;
+				state = State.geoComplited;
 			}
+			throw e;
 		}
 	}
 
 	/**
 	 * Запрос главы района.
 	 * 
-	 * @throws ExceptionWithResource
+	 * @throws LocalizedException
 	 */
-	public void head() throws ExceptionWithResource {
+	public void head() throws LocalizedException {
 		synchronized (this) {
 			if (state != State.holeComplited && state != State.headComplited
 					&& state != State.pdfComplited)
-				throw new ExceptionWithResource(R.string.status_fail);
+				throw new LocalizedException(R.string.status_fail);
 			state = State.headRequest;
 		}
 		try {
@@ -916,7 +927,7 @@ public class Rosyama extends Application {
 			Element element = getElement(post, getEntity(form));
 			NodeList nodeList = element.getElementsByTagName("gibddhead");
 			if (nodeList.getLength() != 1)
-				throw new ExceptionWithResource(R.string.head_fail);
+				throw new LocalizedException(R.string.head_fail);
 			Node node = nodeList.item(0);
 			nodeList = node.getChildNodes();
 			to = "";
@@ -936,7 +947,7 @@ public class Rosyama extends Application {
 				}
 			}
 			if ("".equals(to))
-				throw new ExceptionWithResource(R.string.head_fail);
+				throw new LocalizedException(R.string.head_fail);
 		} finally {
 			synchronized (this) {
 				state = State.headComplited;
@@ -945,10 +956,10 @@ public class Rosyama extends Application {
 	}
 
 	public void pdf(String to, String from, String postAddress, String address,
-			String signature) throws ExceptionWithResource {
+			String signature) throws LocalizedException {
 		synchronized (this) {
 			if (state != State.headComplited && state != State.pdfComplited)
-				throw new ExceptionWithResource(R.string.status_fail);
+				throw new LocalizedException(R.string.status_fail);
 			state = State.pdfRequest;
 		}
 		this.address = address;
@@ -986,16 +997,17 @@ public class Rosyama extends Application {
 				stream = new FileOutputStream(pdfFile);
 				postResponse.writeTo(stream);
 			} catch (IOException e) {
-				throw new ExceptionWithResource(R.string.pdf_fail);
+				throw new LocalizedException(R.string.pdf_fail);
 			}
 			consumeEntity(postResponse);
 			synchronized (this) {
 				state = State.headComplited;
 			}
-		} catch (ExceptionWithResource e) {
+		} catch (LocalizedException e) {
 			synchronized (this) {
 				state = State.pdfComplited;
 			}
+			throw e;
 		}
 	}
 

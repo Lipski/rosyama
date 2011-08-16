@@ -33,6 +33,7 @@
     <string name="data_fail">Ошибка при анализе данных.</string>
     <string name="auth_request">Идет авторизация. Пожалуйста подождите ...</string>
     <string name="auth_fail">Не удалось авторизоваться</string>
+    <string name="auth_required">Неправильный логин или пароль</string>
     <string name="geo_request">Идет определение адреса. Пожалуйста подождите ...</string>
     <string name="geo_fail">Ошибка определения местоположения.</string>
     <string name="photo_request">Идет обработка изображения. Пожалуйста подождите ...</string>
