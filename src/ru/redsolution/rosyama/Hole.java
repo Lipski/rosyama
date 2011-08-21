@@ -98,7 +98,7 @@ public class Hole extends Activity implements OnClickListener, StateListener {
 				((Rosyama) getApplication()).hole(params[0], params[1]);
 				((Rosyama) getApplication()).head();
 			} catch (LocalizedException e) {
-				return getString(e.getResourceID());
+				return e.getString(Hole.this);
 			}
 			return null;
 		}

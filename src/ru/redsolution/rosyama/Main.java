@@ -214,7 +214,7 @@ public class Main extends Activity implements OnClickListener,
 				((Rosyama) getApplication()).photo(params[0]);
 				((Rosyama) getApplication()).geo();
 			} catch (LocalizedException e) {
-				return getString(e.getResourceID());
+				return e.getString(Main.this);
 			}
 			return null;
 		}

@@ -80,7 +80,7 @@ public class Auth extends Activity implements OnClickListener, StateListener {
 			try {
 				rosyama.authorize(params[0], params[1]);
 			} catch (LocalizedException e) {
-				return getString(e.getResourceID());
+				return e.getString(Auth.this);
 			}
 			return null;
 		}

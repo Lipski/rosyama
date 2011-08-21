@@ -120,7 +120,7 @@ public class PDF extends Activity implements OnClickListener, StateListener {
 				((Rosyama) getApplication()).pdf(params[0], params[1],
 						params[2], params[3], params[4]);
 			} catch (LocalizedException e) {
-				return getString(e.getResourceID());
+				return e.getString(PDF.this);
 			}
 			return null;
 		}

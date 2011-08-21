@@ -44,6 +44,7 @@
     <string name="head_fail">Не удалось найти главу ГИБДД.</string>
     <string name="pdf_request">Идет получение заявления. Пожалуйста подождите ...</string>
     <string name="pdf_fail">Не удалось сформировать заявление. Попробуйте зайти через сайт.</string>
+    <string name="cannot_add_defect">Не удалось отправить дефект: %s.</string>
 <!-- Сообщения -->    
     <string name="login_key">login</string>
     <string name="password_key">password</string>

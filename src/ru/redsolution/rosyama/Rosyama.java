@@ -261,13 +261,22 @@ public class Rosyama extends Application implements Runnable {
 	public class LocalizedException extends Exception {
 		private static final long serialVersionUID = 1L;
 		private final int resourceID;
+		private final String extra;
 
-		public LocalizedException(int resourceID) {
+		public LocalizedException(int resourceID, String extra) {
 			this.resourceID = resourceID;
+			this.extra = extra;
 		}
 
-		public int getResourceID() {
-			return resourceID;
+		public LocalizedException(int resourceID) {
+			this(resourceID, null);
+		}
+
+		public String getString(Context context) {
+			if (extra == null)
+				return context.getString(resourceID);
+			else
+				return context.getString(resourceID, extra);
 		}
 	}
 
@@ -342,6 +351,11 @@ public class Rosyama extends Application implements Runnable {
 	 * Требуется авторизация (не прошла авторизация).
 	 */
 	private static final Object AUTHORIZATION_REQUIRED = "AUTHORIZATION_REQUIRED";
+
+	/**
+	 * Не возможно добавить деффект.
+	 */
+	private static final Object CANNOT_ADD_DEFECT = "CANNOT_ADD_DEFECT";
 
 	/**
 	 * Состояние приложения.
@@ -741,6 +755,14 @@ public class Rosyama extends Application implements Runnable {
 				throw new LocalizedException(R.string.auth_fail);
 			if (code.equals(AUTHORIZATION_REQUIRED))
 				throw new LocalizedException(R.string.auth_required);
+			if (code.equals(CANNOT_ADD_DEFECT)) {
+				StringBuffer buffer = new StringBuffer();
+				NodeList chars = node.getChildNodes();
+				for (int piece = 0; piece < chars.getLength(); piece++)
+					buffer.append(chars.item(piece).getNodeValue());
+				throw new LocalizedException(R.string.cannot_add_defect,
+						buffer.toString());
+			}
 		}
 		return element;
 	}
