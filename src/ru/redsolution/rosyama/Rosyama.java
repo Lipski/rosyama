@@ -63,7 +63,7 @@ public class Rosyama extends Application implements Runnable {
 	/**
 	 * Писать логи, использовать точку по умолчанию для геокодинга.
 	 */
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	/**
 	 * Состояние приложения.
