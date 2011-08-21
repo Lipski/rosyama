@@ -21,7 +21,7 @@ import android.view.View.OnClickListener;
 import android.widget.Toast;
 
 public class Main extends Activity implements OnClickListener,
-		DialogClickListener {
+		DialogClickListener, StateListener {
 	private static final String SAVED_REQUESTED_URI = "SAVED_REQUESTED_URI";
 
 	private static final int OPTION_MENU_PREFERENCE_ID = 1;
@@ -32,6 +32,8 @@ public class Main extends Activity implements OnClickListener,
 	private static final int DIALOG_GET_ID = 2;
 
 	private Uri requestedUri;
+
+	private ProgressDialog progressDialog;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,10 @@ public class Main extends Activity implements OnClickListener,
 				requestedUri = Uri.parse(stringUri);
 		}
 		// new PhotoTask().execute("/sdcard/2011-06-02-21-20-24.jpg");
+
+		progressDialog = new ProgressDialog(this);
+		progressDialog.setIndeterminate(true);
+		progressDialog.setCancelable(false);
 	}
 
 	@Override
@@ -59,7 +65,14 @@ public class Main extends Activity implements OnClickListener,
 			finish();
 			return;
 		}
+		((Rosyama) getApplication()).setStateListener(this);
 		enables();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		((Rosyama) getApplication()).setStateListener(null);
 	}
 
 	@Override
@@ -178,19 +191,23 @@ public class Main extends Activity implements OnClickListener,
 	public void onCancel(DialogBuilder dialog) {
 	}
 
-	private class PhotoTask extends AsyncTask<String, String, String> {
-		private ProgressDialog progressDialog;
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			progressDialog = new ProgressDialog(Main.this);
-			progressDialog.setMessage(getString(R.string.photo_request));
-			progressDialog.setIndeterminate(true);
-			progressDialog.setCancelable(false);
+	@Override
+	public void onStateChange() {
+		State state = ((Rosyama) getApplication()).getState();
+		Integer action = state.getAction();
+		if (action == null) {
+			try {
+				progressDialog.dismiss();
+			} catch (IllegalArgumentException e) {
+			}
+		} else {
+			progressDialog.setMessage(getString(action));
 			progressDialog.show();
 		}
+		enables();
+	}
 
+	private class PhotoTask extends AsyncTask<String, String, String> {
 		@Override
 		protected String doInBackground(String... params) {
 			try {
@@ -205,14 +222,8 @@ public class Main extends Activity implements OnClickListener,
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			try {
-				progressDialog.dismiss();
-			} catch (IllegalArgumentException e) {
-				return;
-			}
 			if (result != null)
 				Toast.makeText(Main.this, result, Toast.LENGTH_LONG).show();
-			enables();
 		}
 	}
 }

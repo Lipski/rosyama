@@ -43,12 +43,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Environment;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 
 /**
@@ -57,7 +59,7 @@ import android.preference.PreferenceManager;
  * @author alexander.ivanov
  * 
  */
-public class Rosyama extends Application {
+public class Rosyama extends Application implements Runnable {
 	/**
 	 * Писать логи, использовать точку по умолчанию для геокодинга.
 	 */
@@ -166,6 +168,28 @@ public class Rosyama extends Application {
 			return this == headComplited || this == pdfRequest
 					|| this == pdfComplited;
 
+		}
+
+		/**
+		 * Возвращает текст выполняемой операции.
+		 * 
+		 * @return <code>null</code> если сейчас нет выполняемых операций.
+		 */
+		public Integer getAction() {
+			if (this == State.authRequest)
+				return R.string.auth_request;
+			else if (this == State.geoRequest)
+				return R.string.geo_request;
+			else if (this == State.headRequest)
+				return R.string.head_request;
+			else if (this == State.holeRequest)
+				return R.string.hole_request;
+			else if (this == State.pdfRequest)
+				return R.string.pdf_request;
+			else if (this == State.photoRequest)
+				return R.string.photo_request;
+			else
+				return null;
 		}
 	};
 
@@ -281,7 +305,13 @@ public class Rosyama extends Application {
 	/**
 	 * XML хост РосЯмы.
 	 */
-	private static final String HOST = "http://xml-st1234.greensight.ru";
+	private static final String HOST;
+	static {
+		if (DEBUG)
+			HOST = "http://xml-st1234.greensight.ru";
+		else
+			HOST = "http://xml.rosyama.ru";
+	}
 
 	/**
 	 * Адрес для авторизации.
@@ -398,6 +428,16 @@ public class Rosyama extends Application {
 	 */
 	private DocumentBuilderFactory documentBuilderFactory;
 
+	/**
+	 * Слушатель изменения состояния.
+	 */
+	private StateListener stateListener;
+
+	/**
+	 * Обработчик событий из фона.
+	 */
+	private Handler handler;
+
 	public Rosyama() {
 		client = new RedirctedHttpClient();
 		documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -416,6 +456,9 @@ public class Rosyama extends Application {
 		id = null;
 		to = null;
 		pdfFile = null;
+
+		stateListener = null;
+		handler = new Handler();
 	}
 
 	@Override
@@ -431,6 +474,38 @@ public class Rosyama extends Application {
 				"");
 		if (!"".equals(login))
 			state = State.authComplited;
+	}
+
+	/**
+	 * Обработчик изменения состояния приложения в UI потоке.
+	 */
+	@Override
+	public void run() {
+		if (stateListener != null)
+			stateListener.onStateChange();
+	}
+
+	/**
+	 * Устанавливает случателя за изменения состояния приложения. Обычно
+	 * вызывается из {@link Activity#onResume} и из {@link Activity#onPause}.
+	 * 
+	 * @param activity
+	 */
+	public void setStateListener(StateListener stateListener) {
+		this.stateListener = stateListener;
+		run();
+	}
+
+	/**
+	 * Устанавливает статус и вызывает обработчик в UI потоке.
+	 * 
+	 * @param state
+	 */
+	private void setState(State state) {
+		synchronized (this) {
+			this.state = state;
+			handler.post(this);
+		}
 	}
 
 	/**
@@ -601,8 +676,8 @@ public class Rosyama extends Application {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			post.setEntity(entity);
 		}
+		post.setEntity(entity);
 	}
 
 	/**
@@ -739,7 +814,7 @@ public class Rosyama extends Application {
 					&& state != State.headComplited
 					&& state != State.pdfComplited)
 				throw new LocalizedException(R.string.status_fail);
-			state = State.authRequest;
+			setState(State.authRequest);
 		}
 		try {
 			HttpPost post = new HttpPost(HOST + AUTHORIZE_PATH);
@@ -753,13 +828,9 @@ public class Rosyama extends Application {
 			editor.putString(getString(R.string.login_key), login);
 			editor.putString(getString(R.string.password_key), password);
 			editor.commit();
-			synchronized (this) {
-				state = State.authComplited;
-			}
+			setState(State.authComplited);
 		} catch (LocalizedException e) {
-			synchronized (this) {
-				state = State.idle;
-			}
+			setState(State.idle);
 			throw e;
 		}
 	}
@@ -778,7 +849,7 @@ public class Rosyama extends Application {
 					&& state != State.headComplited
 					&& state != State.pdfComplited)
 				throw new LocalizedException(R.string.status_fail);
-			state = State.photoComplited;
+			setState(State.photoComplited);
 		}
 		this.path = path;
 	}
@@ -795,7 +866,7 @@ public class Rosyama extends Application {
 					&& state != State.headComplited
 					&& state != State.pdfComplited)
 				throw new LocalizedException(R.string.status_fail);
-			state = State.geoRequest;
+			setState(State.geoRequest);
 		}
 		try {
 			address = "";
@@ -851,9 +922,7 @@ public class Rosyama extends Application {
 				e.printStackTrace();
 			throw new LocalizedException(R.string.data_fail);
 		} finally {
-			synchronized (this) {
-				state = State.geoComplited;
-			}
+			setState(State.geoComplited);
 		}
 	}
 
@@ -870,7 +939,7 @@ public class Rosyama extends Application {
 					&& state != State.headComplited
 					&& state != State.pdfComplited)
 				throw new LocalizedException(R.string.status_fail);
-			state = State.holeRequest;
+			setState(State.holeRequest);
 		}
 		this.address = address;
 		this.comment = comment;
@@ -896,13 +965,9 @@ public class Rosyama extends Application {
 				throw new LocalizedException(R.string.hole_fail);
 			id = node.getAttributes().getNamedItem("inserteddefectid")
 					.getNodeValue();
-			synchronized (this) {
-				state = State.holeComplited;
-			}
+			setState(State.holeComplited);
 		} catch (LocalizedException e) {
-			synchronized (this) {
-				state = State.geoComplited;
-			}
+			setState(State.geoComplited);
 			throw e;
 		}
 	}
@@ -917,7 +982,7 @@ public class Rosyama extends Application {
 			if (state != State.holeComplited && state != State.headComplited
 					&& state != State.pdfComplited)
 				throw new LocalizedException(R.string.status_fail);
-			state = State.headRequest;
+			setState(State.headRequest);
 		}
 		try {
 			HttpPost post = new HttpPost(HOST + String.format(HEAD_PATH, id));
@@ -949,9 +1014,7 @@ public class Rosyama extends Application {
 			if ("".equals(to))
 				throw new LocalizedException(R.string.head_fail);
 		} finally {
-			synchronized (this) {
-				state = State.headComplited;
-			}
+			setState(State.headComplited);
 		}
 	}
 
@@ -960,7 +1023,7 @@ public class Rosyama extends Application {
 		synchronized (this) {
 			if (state != State.headComplited && state != State.pdfComplited)
 				throw new LocalizedException(R.string.status_fail);
-			state = State.pdfRequest;
+			setState(State.pdfRequest);
 		}
 		this.address = address;
 		this.to = to;
@@ -1000,13 +1063,9 @@ public class Rosyama extends Application {
 				throw new LocalizedException(R.string.pdf_fail);
 			}
 			consumeEntity(postResponse);
-			synchronized (this) {
-				state = State.headComplited;
-			}
+			setState(State.pdfComplited);
 		} catch (LocalizedException e) {
-			synchronized (this) {
-				state = State.pdfComplited;
-			}
+			setState(State.headComplited);
 			throw e;
 		}
 	}

@@ -1,6 +1,7 @@
 package ru.redsolution.rosyama;
 
 import ru.redsolution.rosyama.Rosyama.LocalizedException;
+import ru.redsolution.rosyama.Rosyama.State;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
@@ -10,7 +11,7 @@ import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class Hole extends Activity implements OnClickListener {
+public class Hole extends Activity implements OnClickListener, StateListener {
 	private static final String SAVED_ADDRESS = "SAVED_ADDRESS";
 	private static final String SAVED_COMMENT = "SAVED_COMMENT";
 
@@ -18,6 +19,8 @@ public class Hole extends Activity implements OnClickListener {
 
 	EditText address;
 	EditText comment;
+
+	private ProgressDialog progressDialog;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -35,6 +38,22 @@ public class Hole extends Activity implements OnClickListener {
 			address.setText(rosyama.getAddress());
 			comment.setText(rosyama.getComment());
 		}
+
+		progressDialog = new ProgressDialog(this);
+		progressDialog.setIndeterminate(true);
+		progressDialog.setCancelable(false);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		((Rosyama) getApplication()).setStateListener(this);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		((Rosyama) getApplication()).setStateListener(null);
 	}
 
 	@Override
@@ -57,19 +76,22 @@ public class Hole extends Activity implements OnClickListener {
 		}
 	}
 
-	private class AddTask extends AsyncTask<String, String, String> {
-		private ProgressDialog progressDialog;
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			progressDialog = new ProgressDialog(Hole.this);
-			progressDialog.setMessage(getString(R.string.hole_request));
-			progressDialog.setIndeterminate(true);
-			progressDialog.setCancelable(false);
+	@Override
+	public void onStateChange() {
+		State state = ((Rosyama) getApplication()).getState();
+		Integer action = state.getAction();
+		if (action == null) {
+			try {
+				progressDialog.dismiss();
+			} catch (IllegalArgumentException e) {
+			}
+		} else {
+			progressDialog.setMessage(getString(action));
 			progressDialog.show();
 		}
+	}
 
+	private class AddTask extends AsyncTask<String, String, String> {
 		@Override
 		protected String doInBackground(String... params) {
 			try {
@@ -84,11 +106,6 @@ public class Hole extends Activity implements OnClickListener {
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			try {
-				progressDialog.dismiss();
-			} catch (IllegalArgumentException e) {
-				return;
-			}
 			if (result != null)
 				Toast.makeText(Hole.this, result, Toast.LENGTH_LONG).show();
 			if (((Rosyama) getApplication()).getState().canPDF())

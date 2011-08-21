@@ -1,6 +1,7 @@
 package ru.redsolution.rosyama;
 
 import ru.redsolution.rosyama.Rosyama.LocalizedException;
+import ru.redsolution.rosyama.Rosyama.State;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -12,7 +13,7 @@ import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class PDF extends Activity implements OnClickListener {
+public class PDF extends Activity implements OnClickListener, StateListener {
 	private static final String SAVED_TO = "SAVED_TO";
 	private static final String SAVED_FROM = "SAVED_FROM";
 	private static final String SAVED_POSTADDRESS = "SAVED_POSTADDRESS";
@@ -26,6 +27,8 @@ public class PDF extends Activity implements OnClickListener {
 	EditText postaddress;
 	EditText address;
 	EditText signature;
+
+	private ProgressDialog progressDialog;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -53,6 +56,22 @@ public class PDF extends Activity implements OnClickListener {
 			postaddress.setText(rosyama.getPostAddress());
 			signature.setText(rosyama.getSignature());
 		}
+
+		progressDialog = new ProgressDialog(this);
+		progressDialog.setIndeterminate(true);
+		progressDialog.setCancelable(false);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		((Rosyama) getApplication()).setStateListener(this);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		((Rosyama) getApplication()).setStateListener(null);
 	}
 
 	@Override
@@ -79,19 +98,22 @@ public class PDF extends Activity implements OnClickListener {
 		}
 	}
 
-	private class GetTask extends AsyncTask<String, String, String> {
-		private ProgressDialog progressDialog;
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			progressDialog = new ProgressDialog(PDF.this);
-			progressDialog.setMessage(getString(R.string.pdf_request));
-			progressDialog.setIndeterminate(true);
-			progressDialog.setCancelable(false);
+	@Override
+	public void onStateChange() {
+		State state = ((Rosyama) getApplication()).getState();
+		Integer action = state.getAction();
+		if (action == null) {
+			try {
+				progressDialog.dismiss();
+			} catch (IllegalArgumentException e) {
+			}
+		} else {
+			progressDialog.setMessage(getString(action));
 			progressDialog.show();
 		}
+	}
 
+	private class GetTask extends AsyncTask<String, String, String> {
 		@Override
 		protected String doInBackground(String... params) {
 			try {
@@ -106,12 +128,9 @@ public class PDF extends Activity implements OnClickListener {
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			try {
-				progressDialog.dismiss();
-			} catch (IllegalArgumentException e) {
-				return;
-			}
-			if (result == null) {
+			if (result != null)
+				Toast.makeText(PDF.this, result, Toast.LENGTH_LONG).show();
+			if (((Rosyama) getApplication()).getState() == State.pdfComplited) {
 				Intent intent = new Intent(android.content.Intent.ACTION_SEND);
 				intent.setType("text/plain");
 				Uri uri = Uri.fromFile(((Rosyama) getApplication())
@@ -120,8 +139,7 @@ public class PDF extends Activity implements OnClickListener {
 				startActivity(Intent.createChooser(intent,
 						getString(R.string.email)));
 				finish();
-			} else
-				Toast.makeText(PDF.this, result, Toast.LENGTH_LONG).show();
+			}
 		}
 	}
 }
