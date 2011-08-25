@@ -3,88 +3,31 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:id="@+id/root"
-    android:background="@drawable/background"
     >
-	<LinearLayout
-	    android:orientation="vertical"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-       	android:layout_weight="1"
-        android:gravity="center"
-	    >
-	    <ImageView
-	    	android:layout_height="wrap_content"
-	    	android:layout_width="wrap_content"
-	    	android:layout_weight="1"
-	    	android:scaleType="fitXY"
-	    	android:adjustViewBounds="true"
-	       	android:clickable="true"
-	       	android:id="@+id/photo_image"
-        	android:src="@drawable/red"
-        />
-	    <TextView
-	    	android:layout_width="fill_parent"
-	    	android:layout_height="fill_parent"
-        	android:layout_weight="3" 
-        	android:gravity="center_horizontal" 
-            android:id="@+id/photo_label"
-	    	android:text="@string/photo_label"
-	    	android:textColor="?android:attr/textColorPrimary"
-	    />
-	</LinearLayout>
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:gravity="center_horizontal" 
+        android:text="Hello"
+    />
 	<LinearLayout
 	    android:orientation="vertical"
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
        	android:layout_weight="1" 
-        android:gravity="center"
 	    >
-        <ImageView
+        <Button
+            android:id="@+id/create"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_weight="1" 
-            android:scaleType="fitXY"
-            android:adjustViewBounds="true"
-            android:clickable="true"
-            android:id="@+id/hole_image"
-            android:src="@drawable/yellow"
-        />
-	    <TextView
-	    	android:layout_width="fill_parent"
-	    	android:layout_height="fill_parent"
-        	android:layout_weight="3"
-        	android:gravity="center_horizontal" 
-            android:id="@+id/hole_label"
-	    	android:text="@string/hole_label"
-	    	android:textColor="?android:attr/textColorPrimary"
-	    />
-	</LinearLayout>
-	<LinearLayout
-	    android:orientation="vertical"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-       	android:layout_weight="1" 
-        android:gravity="center"
-	    >
-        <ImageView
+            android:text="@string/hole_create_label"
+            />
+        <Button
+            android:id="@+id/list"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_weight="1"
-            android:scaleType="fitXY"
-            android:adjustViewBounds="true"
-            android:clickable="true"
-            android:id="@+id/pdf_image"
-            android:src="@drawable/green"
-        />
-	    <TextView
-	    	android:layout_width="fill_parent"
-	    	android:layout_height="fill_parent"
-        	android:layout_weight="3"
-        	android:gravity="center_horizontal" 
-            android:id="@+id/pdf_label"
-	    	android:text="@string/pdf_label"
-	    	android:textColor="?android:attr/textColorPrimary"
-	    />
+            android:text="@string/hole_list_label"
+            />
 	</LinearLayout>
 </LinearLayout>

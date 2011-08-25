@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="72dip" 
+        android:layout_height="72dip"
+        android:src="@drawable/avatar_account_1"
+        />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        >
+        <TextView
+            android:id="@+id/address"
+            android:layout_width="fill_parent" 
+            android:layout_height="fill_parent"
+            android:text="Россия, Челябинск"
+            />
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="fill_parent" 
+            android:layout_height="fill_parent"
+            android:text="Статус"
+            />
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="fill_parent" 
+            android:layout_height="fill_parent"
+            android:text="Дата"
+            />
+        <ImageView
+            android:id="@+id/type"
+            android:layout_width="16dip" 
+            android:layout_height="16dip"
+            android:src="@drawable/avatar_account_1"
+            />
+    </LinearLayout>
+</LinearLayout>

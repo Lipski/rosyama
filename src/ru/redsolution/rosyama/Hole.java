@@ -1,7 +1,8 @@
 package ru.redsolution.rosyama;
 
-import ru.redsolution.rosyama.Rosyama.LocalizedException;
-import ru.redsolution.rosyama.Rosyama.State;
+import ru.redsolution.rosyama.data.Rosyama;
+import ru.redsolution.rosyama.data.Rosyama.LocalizedException;
+import ru.redsolution.rosyama.data.Rosyama.State;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
@@ -25,7 +26,7 @@ public class Hole extends Activity implements OnClickListener, StateListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.hole);
+		// setContentView(R.layout.hole);
 		rosyama = (Rosyama) getApplication();
 		findViewById(R.id.send).setOnClickListener(this);
 		findViewById(R.id.cancel).setOnClickListener(this);

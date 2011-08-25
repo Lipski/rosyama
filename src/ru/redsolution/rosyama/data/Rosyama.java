@@ -1,4 +1,4 @@
-package ru.redsolution.rosyama;
+package ru.redsolution.rosyama.data;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -8,6 +8,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +32,7 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
@@ -43,12 +46,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import ru.redsolution.rosyama.R;
+import ru.redsolution.rosyama.StateListener;
 import android.app.Activity;
 import android.app.Application;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -194,64 +201,6 @@ public class Rosyama extends Application implements Runnable {
 	};
 
 	/**
-	 * Тип деффекта.
-	 * 
-	 * @author alexander.ivanov
-	 * 
-	 */
-	public static enum HoleType {
-		/**
-		 * Разбитая дорога.
-		 */
-		badroad,
-
-		/**
-		 * Яма на дороге.
-		 */
-		holeonroad,
-
-		/**
-		 * Люк.
-		 */
-		hatch,
-
-		/**
-		 * Переезд (не используется).
-		 */
-		crossing,
-
-		/**
-		 * Отсутствие разметки (не используется).
-		 */
-		nomarking,
-
-		/**
-		 * Рельсы.
-		 */
-		rails,
-
-		/**
-		 * Лежачий полицейский.
-		 */
-		policeman,
-
-		/**
-		 * Ограждение (не используется).
-		 */
-		fence,
-
-		/**
-		 * Яма во дворе.
-		 */
-		holeinyard,
-
-		/**
-		 * Неисправный светофор (не используется).
-		 */
-		light,
-	}
-
-	/**
 	 * Исключения, генерируемые приложением, содержащие ресурс с описанием
 	 * ошибки.
 	 * 
@@ -365,7 +314,7 @@ public class Rosyama extends Application implements Runnable {
 	/**
 	 * Используемый HTTP клиент.
 	 */
-	private RedirctedHttpClient client;
+	private DefaultHttpClient client;
 
 	/**
 	 * Имя пользователя.
@@ -400,7 +349,7 @@ public class Rosyama extends Application implements Runnable {
 	/**
 	 * Тип дефекта.
 	 */
-	private HoleType type;
+	private Type type;
 
 	/**
 	 * Присвоенный номер ямы.
@@ -452,8 +401,13 @@ public class Rosyama extends Application implements Runnable {
 	 */
 	private Handler handler;
 
+	/**
+	 * Диалог для отображения состояния приложения.
+	 */
+	private ProgressDialog progressDialog;
+
 	public Rosyama() {
-		client = new RedirctedHttpClient();
+		client = new DefaultHttpClient();
 		documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		state = State.idle;
 		login = null;
@@ -465,7 +419,7 @@ public class Rosyama extends Application implements Runnable {
 		path = null;
 		location = null;
 		address = null;
-		type = HoleType.holeonroad;
+		type = Type.holeonroad;
 		comment = null;
 		id = null;
 		to = null;
@@ -473,6 +427,10 @@ public class Rosyama extends Application implements Runnable {
 
 		stateListener = null;
 		handler = new Handler();
+
+		// NEW
+
+		holes = new ArrayList<Hole>();
 	}
 
 	@Override
@@ -486,8 +444,12 @@ public class Rosyama extends Application implements Runnable {
 		signature = settings.getString(getString(R.string.signature_key), "");
 		postAddress = settings.getString(getString(R.string.postaddress_key),
 				"");
-		if (!"".equals(login))
+		if (!"".equals(password))
 			state = State.authComplited;
+
+		progressDialog = new ProgressDialog(this);
+		progressDialog.setIndeterminate(true);
+		progressDialog.setCancelable(false);
 	}
 
 	/**
@@ -495,8 +457,19 @@ public class Rosyama extends Application implements Runnable {
 	 */
 	@Override
 	public void run() {
-		if (stateListener != null)
+		if (stateListener != null) {
 			stateListener.onStateChange();
+			Integer action = state.getAction();
+			if (action == null) {
+				try {
+					progressDialog.dismiss();
+				} catch (IllegalArgumentException e) {
+				}
+			} else {
+				progressDialog.setMessage(getString(action));
+				progressDialog.show();
+			}
+		}
 	}
 
 	/**
@@ -656,7 +629,7 @@ public class Rosyama extends Application implements Runnable {
 			if (WRITE) {
 				try {
 					FileOutputStream stream = openFileOutput(
-							FILE_NAME_FORMAT.format(new Date()) + ".raw",
+							getNextFileName(".raw"),
 							Context.MODE_WORLD_WRITEABLE);
 					stream.write(content.getBytes());
 				} catch (IOException e) {
@@ -684,8 +657,8 @@ public class Rosyama extends Application implements Runnable {
 		if (WRITE) {
 			try {
 				FileOutputStream stream;
-				stream = openFileOutput(FILE_NAME_FORMAT.format(new Date())
-						+ ".post", Context.MODE_WORLD_WRITEABLE);
+				stream = openFileOutput(getNextFileName(".post"),
+						Context.MODE_WORLD_WRITEABLE);
 				entity.writeTo(stream);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -816,6 +789,16 @@ public class Rosyama extends Application implements Runnable {
 			throw new RuntimeException(e);
 		}
 		return multipartEntity;
+	}
+
+	/**
+	 * Выйти и забыть пароль.
+	 */
+	public void logout() {
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString(getString(R.string.password_key), "");
+		editor.commit();
+		setState(State.idle);
 	}
 
 	/**
@@ -1095,5 +1078,76 @@ public class Rosyama extends Application implements Runnable {
 	private static String getPoint(double value) {
 		return Location.convert(value, Location.FORMAT_DEGREES).replace(',',
 				'.');
+	}
+
+	private static String getNextFileName(String extention) {
+		return Rosyama.FILE_NAME_FORMAT.format(new Date()) + extention;
+	}
+
+	public static Uri getNextJpegUri() {
+		return Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
+				getNextFileName(".jpeg")));
+	}
+
+	/**
+	 * Список дефектов.
+	 */
+	ArrayList<Hole> holes;
+
+	/**
+	 * Возвращает все дефекты.
+	 * 
+	 * @return
+	 */
+	public Collection<Hole> getHoles() {
+		return Collections.unmodifiableCollection(holes);
+	}
+
+	/**
+	 * Возвращает дефект по ещё номеру.
+	 * 
+	 * @param id
+	 *            используйте <code>null</code> для нового дефекта
+	 * @return может вернуть <code>null</code>, если дефект не найден.
+	 */
+	public Hole getHole(Integer id) {
+		for (Hole hole : holes)
+			if (hole.getId() == id)
+				return hole;
+		return null;
+	}
+
+	/**
+	 * Создание не отправленного дефекта.
+	 * 
+	 * @param path
+	 *            путь до фотографии.
+	 */
+	public void createHole(Uri path) {
+		// Получение гео данных
+		Location gps = ((LocationManager) getSystemService(Context.LOCATION_SERVICE))
+				.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
+		Location net = ((LocationManager) getSystemService(Context.LOCATION_SERVICE))
+				.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER);
+		Location location = net;
+		// Определение лучших данных
+		if (gps != null && net != null) {
+			if (gps.getTime() > net.getTime())
+				location = gps;
+			else if (net.hasAccuracy()) {
+				float[] results = new float[1];
+				Location.distanceBetween(net.getLatitude(), net.getLongitude(),
+						gps.getLatitude(), gps.getLongitude(), results);
+				if (results[0] < net.getAccuracy())
+					location = gps;
+			}
+		} else if (net == null)
+			location = gps;
+		// Удаление неотправленного дефекта.
+		Hole hole = getHole(null);
+		if (hole != null)
+			holes.remove(hole);
+		// Добавление нового дефекта.
+		holes.add(new Hole(path, location));
 	}
 }

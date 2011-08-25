@@ -8,8 +8,13 @@
     <string name="enter">Вход</string>
     <string name="register">Регистрация</string>
 <!-- Главное окно -->
+    <string name="hole_create_dialog">Сделайте фотографию и мы постараемся определить её адрес. Включение GPS и WiFi поможет повысить точность.</string>
+    <string name="hole_create_label">Сообщить о дефекте</string>
+    <string name="hole_list_label">Загруженные дефекты</string>
+    <string name="logout">Выйти</string>
+    
+    
     <string name="photo_label">Сфотографировать</string>
-    <string name="photo_help">Сделайте фотографию и мы постараемся определить её адрес. Включение GPS и WiFi поможет повысить точность.</string>
     <string name="hole_label">Отправить дефект</string>
     <string name="hole_help">Проверьте адрес и мы отправим заявку на сайт rosyama.ru</string>
     <string name="pdf_label">Получить заявление</string>

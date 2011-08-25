@@ -1,63 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="#ECECEC"
     >
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        android:padding="4dip"
-    >
-        <ImageView
-        	android:layout_width="fill_parent"
-        	android:layout_height="wrap_content"
-        	android:src="@drawable/logo"
-        />
-    </LinearLayout>
-    <LinearLayout
+    <LinearLayout 
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:background="#ECECEC"
-        android:padding="4dip"
-    >
-        <EditText
-            android:layout_width="fill_parent" 
+        >
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/login"
-            android:hint="@string/login"
-           	android:singleLine="true"
-        /> 
-        <EditText
-            android:layout_width="fill_parent" 
-            android:layout_height="wrap_content"
-            android:id="@+id/password"
-            android:hint="@string/password"
-           	android:singleLine="true"
-           	android:password="true"
-        /> 
-    	<LinearLayout
-    	    android:orientation="horizontal"
-    	    android:layout_width="fill_parent"
-    	    android:layout_height="fill_parent"
-    	    >
-    	    <Button
-    	        android:layout_width="fill_parent" 
-    	        android:layout_height="wrap_content"
-    	        android:layout_weight="1" 
-    	        android:id="@+id/enter"
-    	        android:text="@string/enter"
-    	    />
-    	    <Button
-    	        android:layout_width="fill_parent" 
-    	        android:layout_height="wrap_content" 
-    	        android:layout_weight="1" 
-    	        android:id="@+id/register"
-    	        android:text="@string/register"
-    	    />
+            android:background="#FFFFFF"
+            android:padding="4dip"
+        >
+            <ImageView
+            	android:layout_width="fill_parent"
+            	android:layout_height="wrap_content"
+            	android:src="@drawable/logo"
+            />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:padding="4dip"
+        >
+            <EditText
+                android:layout_width="fill_parent" 
+                android:layout_height="wrap_content"
+                android:id="@+id/login"
+                android:hint="@string/login"
+               	android:singleLine="true"
+            /> 
+            <EditText
+                android:layout_width="fill_parent" 
+                android:layout_height="wrap_content"
+                android:id="@+id/password"
+                android:hint="@string/password"
+               	android:singleLine="true"
+               	android:password="true"
+            /> 
+        	<LinearLayout
+        	    android:orientation="horizontal"
+        	    android:layout_width="fill_parent"
+        	    android:layout_height="fill_parent"
+        	    >
+        	    <Button
+        	        android:layout_width="fill_parent" 
+        	        android:layout_height="wrap_content"
+        	        android:layout_weight="1" 
+        	        android:id="@+id/enter"
+        	        android:text="@string/enter"
+        	    />
+        	    <Button
+        	        android:layout_width="fill_parent" 
+        	        android:layout_height="wrap_content" 
+        	        android:layout_weight="1" 
+        	        android:id="@+id/register"
+        	        android:text="@string/register"
+        	    />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</ScrollView>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="72dip"
+    android:orientation="horizontal"
+    >
+    <ImageView
+        android:layout_width="72dip" 
+        android:layout_height="72dip"
+        android:src="@drawable/avatar_account_1"
+        />
+</LinearLayout>

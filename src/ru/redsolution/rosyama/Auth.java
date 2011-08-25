@@ -1,9 +1,8 @@
 package ru.redsolution.rosyama;
 
-import ru.redsolution.rosyama.Rosyama.LocalizedException;
-import ru.redsolution.rosyama.Rosyama.State;
+import ru.redsolution.rosyama.data.Rosyama;
+import ru.redsolution.rosyama.data.Rosyama.LocalizedException;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -14,7 +13,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class Auth extends Activity implements OnClickListener, StateListener {
-	private ProgressDialog progressDialog;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -22,10 +20,6 @@ public class Auth extends Activity implements OnClickListener, StateListener {
 		setContentView(R.layout.auth);
 		findViewById(R.id.enter).setOnClickListener(this);
 		findViewById(R.id.register).setOnClickListener(this);
-
-		progressDialog = new ProgressDialog(this);
-		progressDialog.setIndeterminate(true);
-		progressDialog.setCancelable(false);
 	}
 
 	@Override
@@ -60,17 +54,6 @@ public class Auth extends Activity implements OnClickListener, StateListener {
 
 	@Override
 	public void onStateChange() {
-		State state = ((Rosyama) getApplication()).getState();
-		Integer action = state.getAction();
-		if (action == null) {
-			try {
-				progressDialog.dismiss();
-			} catch (IllegalArgumentException e) {
-			}
-		} else {
-			progressDialog.setMessage(getString(action));
-			progressDialog.show();
-		}
 	}
 
 	private class LoginTask extends AsyncTask<String, String, String> {
