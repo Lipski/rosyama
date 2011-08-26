@@ -3,67 +3,86 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="#ECECEC"
+    android:background="@drawable/background_repeat"
     >
-    <LinearLayout 
+    <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
+        android:background="@drawable/gradient"
+        android:padding="0dip"
         >
         <LinearLayout
-            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"            
+            android:background="@drawable/dot_repeat"
+            android:layout_marginTop="2dip"
+            />
+        <ImageView
+        	android:layout_width="fill_parent"
+        	android:layout_height="wrap_content"
+        	android:src="@drawable/logo_img"
+            />
+        <ImageView
+        	android:layout_width="fill_parent"
+        	android:layout_height="wrap_content"
+        	android:src="@drawable/logo_text"
+            />
+        <EditText
+            android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            android:id="@+id/login"
+            android:hint="@string/login"
+           	android:singleLine="true"
+            android:background="@drawable/field"
+            android:padding="6dip"
+            android:layout_margin="4dip"
+            /> 
+        <EditText
+            android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            android:id="@+id/password"
+            android:hint="@string/password"
+           	android:singleLine="true"
+           	android:password="true"
+            android:background="@drawable/field"
+            android:padding="6dip"
+            android:layout_margin="4dip"                
+            /> 
+	    <Button
+	        android:layout_width="fill_parent" 
+	        android:layout_height="wrap_content"
+            android:layout_margin="4dip"
+            android:padding="10dip" 
+	        android:id="@+id/enter"
+	        android:text="@string/enter"
+            android:background="@drawable/btn_orange"
+    	    />
+	    <Button
+	        android:layout_width="fill_parent" 
+	        android:layout_height="wrap_content" 
+            android:layout_marginLeft="4dip"
+            android:layout_marginRight="4dip"
+            android:layout_marginTop="20dip"
+            android:layout_marginBottom="20dip"
+            android:padding="10dip"  
+	        android:id="@+id/register"
+	        android:text="@string/register"
+            android:background="@drawable/btn_gray"
+    	    />
+	    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"            
+            android:background="@drawable/dot_repeat"
+            android:layout_marginTop="10dip"
+            />
+        <ImageView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            android:padding="4dip"
-        >
-            <ImageView
-            	android:layout_width="fill_parent"
-            	android:layout_height="wrap_content"
-            	android:src="@drawable/logo"
-            />
-        </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:padding="4dip"
-        >
-            <EditText
-                android:layout_width="fill_parent" 
-                android:layout_height="wrap_content"
-                android:id="@+id/login"
-                android:hint="@string/login"
-               	android:singleLine="true"
-            /> 
-            <EditText
-                android:layout_width="fill_parent" 
-                android:layout_height="wrap_content"
-                android:id="@+id/password"
-                android:hint="@string/password"
-               	android:singleLine="true"
-               	android:password="true"
-            /> 
-        	<LinearLayout
-        	    android:orientation="horizontal"
-        	    android:layout_width="fill_parent"
-        	    android:layout_height="fill_parent"
-        	    >
-        	    <Button
-        	        android:layout_width="fill_parent" 
-        	        android:layout_height="wrap_content"
-        	        android:layout_weight="1" 
-        	        android:id="@+id/enter"
-        	        android:text="@string/enter"
-        	    />
-        	    <Button
-        	        android:layout_width="fill_parent" 
-        	        android:layout_height="wrap_content" 
-        	        android:layout_weight="1" 
-        	        android:id="@+id/register"
-        	        android:text="@string/register"
-        	    />
-            </LinearLayout>
-        </LinearLayout>
+            android:layout_weight="1"
+            android:layout_gravity="bottom"
+            android:layout_marginTop="8dip"
+            android:src="@drawable/redsolution_logo"
+            />    
     </LinearLayout>
 </ScrollView>
