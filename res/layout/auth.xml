@@ -29,47 +29,40 @@
         	android:src="@drawable/logo_text"
             />
         <EditText
+            android:id="@+id/login"
             android:layout_width="fill_parent" 
             android:layout_height="wrap_content"
-            android:id="@+id/login"
+            android:layout_margin="4dip"
             android:hint="@string/login"
            	android:singleLine="true"
-            android:background="@drawable/field"
-            android:padding="6dip"
-            android:layout_margin="4dip"
             /> 
         <EditText
+            android:id="@+id/password"
             android:layout_width="fill_parent" 
             android:layout_height="wrap_content"
-            android:id="@+id/password"
+            android:layout_margin="4dip"                
             android:hint="@string/password"
            	android:singleLine="true"
            	android:password="true"
-            android:background="@drawable/field"
-            android:padding="6dip"
-            android:layout_margin="4dip"                
             /> 
 	    <Button
+	        android:id="@+id/enter"
 	        android:layout_width="fill_parent" 
 	        android:layout_height="wrap_content"
             android:layout_margin="4dip"
-            android:padding="10dip" 
-	        android:id="@+id/enter"
 	        android:text="@string/enter"
-            android:background="@drawable/btn_orange"
     	    />
 	    <Button
+	        android:id="@+id/register"
 	        android:layout_width="fill_parent" 
 	        android:layout_height="wrap_content" 
             android:layout_marginLeft="4dip"
             android:layout_marginRight="4dip"
             android:layout_marginTop="20dip"
             android:layout_marginBottom="20dip"
-            android:padding="10dip"  
-	        android:id="@+id/register"
 	        android:text="@string/register"
-            android:background="@drawable/btn_gray"
     	    />
+        <!--
 	    <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"            
@@ -83,6 +76,7 @@
             android:layout_gravity="bottom"
             android:layout_marginTop="8dip"
             android:src="@drawable/redsolution_logo"
-            />    
+            />
+        -->    
     </LinearLayout>
 </ScrollView>

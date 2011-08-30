@@ -1,23 +1,28 @@
 package ru.redsolution.rosyama.data;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import android.location.Location;
 import android.net.Uri;
 
 public class Hole {
 	/**
+	 * Приложение.
+	 */
+	private final Rosyama rosyama;
+
+	/**
 	 * Идентификатор на сайте.
 	 */
-	private Integer id;
+	private String id;
 
 	/**
 	 * Дата размещения на сайте.
 	 */
-	private Date date;
+	private Date created;
 
 	/**
 	 * Координаты.
@@ -47,38 +52,66 @@ public class Hole {
 	/**
 	 * Список фотографий.
 	 */
-	private ArrayList<Photo> photos;
+	private ArrayList<AbstractPhoto> photos;
+
+	/**
+	 * Глава ГИБДД.
+	 */
+	private String to;
 
 	/**
 	 * Конструктор неотправленного дефекта.
 	 * 
+	 * @param rosyama
+	 *            Приложение.
 	 * @param path
-	 *            путь до фотографии.
+	 *            Путь до фотографии.
 	 * @param location
-	 *            координаты, может быть <code>null</code>.
+	 *            Координаты, может быть <code>null</code>.
 	 */
-	public Hole(Uri path, Location location) {
+	public Hole(Rosyama rosyama, Uri path, Location location) {
+		this.rosyama = rosyama;
 		id = null;
-		date = null;
+		created = null;
 		this.location = location;
-		address = null;
+		address = "";
 		type = null;
 		status = Status.fresh;
-		comment = null;
-		photos = new ArrayList<Photo>();
-		photos.add(new Photo(path, null));
+		comment = "";
+		to = "";
+		photos = new ArrayList<AbstractPhoto>();
+		photos.add(new LocalPhoto(rosyama, path));
 	}
 
-	public Integer getId() {
+	public Hole(Rosyama rosyama, String id, Date created, Location location,
+			String address, Type type, Status status, String comment,
+			ArrayList<RemotePhoto> photos) {
+		this.rosyama = rosyama;
+		this.id = id;
+		this.created = created;
+		this.location = location;
+		this.address = address;
+		this.type = type;
+		this.status = status;
+		this.comment = comment;
+		this.to = "";
+		this.photos = new ArrayList<AbstractPhoto>(photos);
+	}
+
+	public String getId() {
 		return id;
 	}
 
-	void setId(Integer id) {
+	void setId(String id) {
 		this.id = id;
 	}
 
-	public Date getDate() {
-		return date;
+	public Date getCreated() {
+		return created;
+	}
+
+	public String getCreatedText() {
+		return Rosyama.DATE_FORMAT.format(created);
 	}
 
 	public Location getLocation() {
@@ -87,6 +120,7 @@ public class Hole {
 
 	public void setLocation(Location location) {
 		this.location = location;
+		rosyama.onUpdate();
 	}
 
 	public String getAddress() {
@@ -95,6 +129,7 @@ public class Hole {
 
 	public void setAddress(String address) {
 		this.address = address;
+		rosyama.onUpdate();
 	}
 
 	public Type getType() {
@@ -103,6 +138,7 @@ public class Hole {
 
 	public void setType(Type type) {
 		this.type = type;
+		rosyama.onUpdate();
 	}
 
 	public Status getStatus() {
@@ -115,10 +151,59 @@ public class Hole {
 
 	public void setComment(String comment) {
 		this.comment = comment;
+		rosyama.onUpdate();
 	}
 
-	public Collection<Photo> getPhotos() {
-		return Collections.unmodifiableCollection(photos);
+	public String getTo() {
+		return to;
+	}
+
+	public void setTo(String to) {
+		this.to = to;
+		rosyama.onUpdate();
+	}
+
+	/**
+	 * Возвращает список фотографий помеченных для удаления.
+	 * 
+	 * @return
+	 */
+	public List<RemotePhoto> getPhotosToRemove() {
+		ArrayList<RemotePhoto> result = new ArrayList<RemotePhoto>();
+		for (AbstractPhoto photo : photos)
+			if (photo instanceof RemotePhoto) {
+				RemotePhoto remotePhoto = (RemotePhoto) photo;
+				if (remotePhoto.isToRemove())
+					result.add(remotePhoto);
+			}
+		return Collections.unmodifiableList(result);
+	}
+
+	/**
+	 * Возвращает список фотографий для отправки.
+	 * 
+	 * @return
+	 */
+	public List<LocalPhoto> getPhotosToSend() {
+		ArrayList<LocalPhoto> result = new ArrayList<LocalPhoto>();
+		for (AbstractPhoto photo : photos)
+			if (photo instanceof LocalPhoto)
+				result.add((LocalPhoto) photo);
+		return Collections.unmodifiableList(result);
+	}
+
+	/**
+	 * Возвращает список видимых фотографий.
+	 * 
+	 * @return
+	 */
+	public List<AbstractPhoto> getVisiblePhotos() {
+		ArrayList<AbstractPhoto> result = new ArrayList<AbstractPhoto>();
+		for (AbstractPhoto photo : photos)
+			if (!(photo instanceof RemotePhoto)
+					|| !((RemotePhoto) photo).isToRemove())
+				result.add(photo);
+		return Collections.unmodifiableList(result);
 	}
 
 	/**
@@ -127,7 +212,8 @@ public class Hole {
 	 * @param photo
 	 */
 	public void createPhoto(Uri path) {
-		photos.add(new Photo(path, null));
+		photos.add(new LocalPhoto(rosyama, path));
+		rosyama.onUpdate();
 	}
 
 	/**
@@ -135,7 +221,11 @@ public class Hole {
 	 * 
 	 * @param photo
 	 */
-	public void removePhoto(Photo photo) {
-		photos.remove(photo);
+	public void removePhoto(AbstractPhoto photo) {
+		if (photo instanceof RemotePhoto)
+			((RemotePhoto) photo).remove();
+		else
+			photos.remove(photo);
+		rosyama.onUpdate();
 	}
 }

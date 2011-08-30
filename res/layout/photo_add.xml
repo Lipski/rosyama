@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="72dip"
-    android:orientation="horizontal"
+    android:layout_height="fill_parent"
     >
-    <ImageView
-        android:layout_width="72dip" 
-        android:layout_height="72dip"
-        android:src="@drawable/avatar_account_1"
+    <Button
+        android:id="@+id/add"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dip"
+        android:text="@string/photo_add"
         />
 </LinearLayout>

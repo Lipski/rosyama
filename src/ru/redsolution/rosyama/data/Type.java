@@ -1,5 +1,7 @@
 package ru.redsolution.rosyama.data;
 
+import ru.redsolution.rosyama.R;
+
 /**
  * Тип дефекта.
  * 
@@ -58,11 +60,23 @@ public enum Type {
 	light;
 
 	/**
-	 * Возвращает ресурс с изображением типа дефекта.
+	 * Возвращает ресурс с названием дефекта.
 	 * 
 	 * @return
 	 */
-	int getResourceID() {
+	public int getResourceID() {
+		if (this == badroad)
+			return R.string.type_badroad;
+		if (this == holeonroad)
+			return R.string.type_holeonroad;
+		if (this == hatch)
+			return R.string.type_hatch;
+		if (this == rails)
+			return R.string.type_rails;
+		if (this == policeman)
+			return R.string.type_policeman;
+		if (this == holeinyard)
+			return R.string.type_holeinyard;
 		return 0;
 	}
 }

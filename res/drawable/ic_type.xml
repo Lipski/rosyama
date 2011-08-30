@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/ic_type_badroad"
+        android:minLevel="0"
+        android:maxLevel="0" />
+    <item
+        android:drawable="@drawable/ic_type_holeonroad"
+        android:minLevel="1"
+        android:maxLevel="1" />
+    <item
+        android:drawable="@drawable/ic_type_hatch"
+        android:minLevel="2"
+        android:maxLevel="2" />
+    <item
+        android:drawable="@drawable/ic_type_rails"
+        android:minLevel="5"
+        android:maxLevel="5" />
+    <item
+        android:drawable="@drawable/ic_type_policeman"
+        android:minLevel="6"
+        android:maxLevel="6" />
+    <item
+        android:drawable="@drawable/ic_type_holeinyard"
+        android:minLevel="8"
+        android:maxLevel="8" />
+</level-list>

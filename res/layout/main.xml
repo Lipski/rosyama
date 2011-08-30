@@ -3,31 +3,52 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@drawable/background_repeat"
     >
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"            
+        android:background="@drawable/dot_repeat"
+        android:layout_marginTop="2dip"
+        />
     <TextView
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:gravity="center_horizontal" 
-        android:text="Hello"
-    />
-	<LinearLayout
-	    android:orientation="vertical"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-       	android:layout_weight="1" 
-	    >
-        <Button
-            android:id="@+id/create"
+        android:layout_marginTop="20dip"
+        android:gravity="center_horizontal"
+        android:textColor="#FFF" 
+        android:text="@string/main_text"
+        />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"            
+        android:layout_weight="1"
+        >
+        <ImageView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/hole_create_label"
+            android:src="@drawable/main_img"
             />
-        <Button
-            android:id="@+id/list"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/hole_list_label"
-            />
-	</LinearLayout>
+    </LinearLayout>
+    <Button
+        android:id="@+id/create"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/hole_create_label"
+        />
+    <Button
+        android:id="@+id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/hole_list_label"
+        />
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"            
+        android:background="@drawable/dot_repeat"
+        android:layout_marginTop="20dip"
+        android:layout_marginBottom="2dip"
+        />
 </LinearLayout>

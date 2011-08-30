@@ -1,10 +1,9 @@
 package ru.redsolution.rosyama;
 
-import java.util.Collection;
-
-import ru.redsolution.rosyama.data.Photo;
+import ru.redsolution.rosyama.data.Hole;
 import ru.redsolution.rosyama.data.Rosyama;
 import ru.redsolution.rosyama.data.Status;
+import ru.redsolution.rosyama.data.Type;
 import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,22 +36,12 @@ public class HoleAdapter extends BaseAdapter {
 
 	@Override
 	public int getCount() {
-		int count = 0;
-		for (ru.redsolution.rosyama.data.Hole hole : rosyama.getHoles())
-			if (hole.getStatus() == status)
-				count++;
-		return count;
+		return rosyama.getHoles(status).size();
 	}
 
 	@Override
 	public Object getItem(int position) {
-		int count = 0;
-		for (ru.redsolution.rosyama.data.Hole hole : rosyama.getHoles())
-			if (hole.getStatus() == status)
-				if (count == position)
-					return hole;
-		count++;
-		return null;
+		return rosyama.getHoles(status).get(position);
 	}
 
 	@Override
@@ -68,16 +57,23 @@ public class HoleAdapter extends BaseAdapter {
 		} else {
 			view = convertView;
 		}
-		ru.redsolution.rosyama.data.Hole hole = (ru.redsolution.rosyama.data.Hole) getItem(position);
-		Collection<Photo> photos = hole.getPhotos();
-		if (photos.size() == 0)
-			((ImageView) view.findViewById(R.id.image))
-					.setImageResource(R.drawable.no_image);
-		else
-			((ImageView) view.findViewById(R.id.image)).setImageURI(photos
-					.iterator().next().getUrl());
+		Hole hole = (Hole) getItem(position);
+
+		InterfaceUtilities.setPreview(
+				(ImageView) view.findViewById(R.id.image),
+				hole.getVisiblePhotos());
+
+		((TextView) view.findViewById(R.id.date))
+				.setText(hole.getCreatedText());
 		((TextView) view.findViewById(R.id.address)).setText(hole.getAddress());
+
+		Type type = hole.getType();
+		if (type != null) {
+			((ImageView) view.findViewById(R.id.type_image)).setImageLevel(type
+					.ordinal());
+			((TextView) view.findViewById(R.id.type_text)).setText(type
+					.getResourceID());
+		}
 		return view;
 	}
-
 }

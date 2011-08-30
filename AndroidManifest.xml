@@ -5,17 +5,23 @@
       android:versionName="0.1.4">
     <uses-sdk android:minSdkVersion="3" />
     <application android:name=".data.Rosyama" android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
-        <activity android:name=".Main"
-                  android:label="@string/app_name">
+        <activity
+            android:name=".Main"
+            android:label="@string/app_name"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Auth" android:label="@string/app_name" />
-        <activity android:name=".Edit" android:label="@string/app_name" />
-        <activity android:name=".List" android:label="@string/app_name" />
-        <activity android:name=".PDF" android:label="@string/app_name" />
+        <activity android:name=".Auth" android:label="@string/app_name" android:theme="@android:style/Theme.NoTitleBar" />
+        <activity android:name=".HoleEdit" android:label="@string/app_name" />
+        <activity android:name=".PhotoList" android:label="@string/app_name" />
+        <activity android:name=".Map" android:label="@string/app_name" />
+        <activity android:name=".HoleList" android:label="@string/app_name" />
+        <activity android:name=".HoleDetail" android:label="@string/app_name" />
+        <activity android:name=".PDFPreview" android:label="@string/app_name" />
+        <uses-library android:name="com.google.android.maps" />
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

@@ -16,21 +16,27 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:minLines="2"
-            android:text="Россия, Челябинск, Троиская 1в"
-            android:hint="Введите адрес"
+            android:hint="@string/map_hint"
             />
         <ImageButton
-            android:id="@+id/position"
+            android:id="@+id/search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/btn_my_position"
+            android:src="@drawable/btn_location"
             />
     </LinearLayout>
+    <Button
+        android:id="@+id/done"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/btn_orange"
+        android:text="@string/map_done"
+        />
 	<com.google.android.maps.MapView
 	    android:id="@+id/map"
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
 	    android:clickable="true"
-	    android:apiKey="0IzbmGe1ymUg-GfxqNuUcXbEywx9wRzt2v-HZdg"
+	    android:apiKey="@string/map_key"
 		/>
 </LinearLayout>

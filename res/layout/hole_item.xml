@@ -3,41 +3,83 @@
     android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/panel_with_arrow"
     >
     <ImageView
         android:id="@+id/image"
-        android:layout_width="72dip" 
-        android:layout_height="72dip"
-        android:src="@drawable/avatar_account_1"
+        android:layout_width="@dimen/image_preview_size" 
+        android:layout_height="@dimen/image_preview_size"
+        android:layout_marginRight="8dip"
+        android:src="@drawable/ic_no_photo"
         />
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         >
-        <TextView
-            android:id="@+id/address"
-            android:layout_width="fill_parent" 
-            android:layout_height="fill_parent"
-            android:text="Россия, Челябинск"
-            />
-        <TextView
-            android:id="@+id/status"
-            android:layout_width="fill_parent" 
-            android:layout_height="fill_parent"
-            android:text="Статус"
-            />
-        <TextView
-            android:id="@+id/date"
-            android:layout_width="fill_parent" 
-            android:layout_height="fill_parent"
-            android:text="Дата"
-            />
-        <ImageView
-            android:id="@+id/type"
-            android:layout_width="16dip" 
-            android:layout_height="16dip"
-            android:src="@drawable/avatar_account_1"
-            />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dip"
+            android:paddingBottom="2dip"
+            android:layout_weight="1"
+            >
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="fill_parent" 
+                android:layout_height="fill_parent"
+                android:layout_marginLeft="24dip"
+                android:singleLine="true"
+                android:text="Вчера"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dip"
+            android:paddingBottom="2dip"
+            android:layout_weight="1"
+            >
+            <ImageView
+                android:layout_width="16dip" 
+                android:layout_height="16dip"
+                android:src="@drawable/ic_location"
+                />
+            <TextView
+                android:id="@+id/address"
+                android:layout_width="fill_parent" 
+                android:layout_height="fill_parent"
+                android:layout_marginLeft="8dip"
+                android:singleLine="true"
+                android:textColor="#000"
+                android:text="Россия, Челябинск"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dip"
+            android:paddingBottom="2dip"
+            android:layout_weight="1"
+            >
+            <ImageView
+                android:id="@+id/type_image"
+                android:layout_width="16dip" 
+                android:layout_height="16dip"
+                android:src="@drawable/ic_type"
+                />
+            <TextView
+                android:id="@+id/type_text"
+                android:layout_width="fill_parent" 
+                android:layout_height="fill_parent"
+                android:layout_marginLeft="8dip"
+                android:singleLine="true"
+                android:textColor="#000"
+                android:text="Тип"
+                />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

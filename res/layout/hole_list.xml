@@ -22,12 +22,12 @@
             android:padding="4dip"
             >
             <ListView
-                android:id="@+id/created"
+                android:id="@+id/fresh"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 />
             <ListView
-                android:id="@+id/pending"
+                android:id="@+id/inprogress"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 />

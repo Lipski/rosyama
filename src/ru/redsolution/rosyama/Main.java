@@ -1,6 +1,9 @@
 package ru.redsolution.rosyama;
 
+import java.io.File;
+
 import ru.redsolution.rosyama.data.Rosyama;
+import ru.redsolution.rosyama.data.UpdateListener;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
@@ -13,7 +16,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 
 public class Main extends Activity implements OnClickListener,
-		DialogClickListener, StateListener {
+		DialogClickListener, UpdateListener {
 	/**
 	 * Запрошенный URL.
 	 */
@@ -63,19 +66,13 @@ public class Main extends Activity implements OnClickListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (!rosyama.getState().isAuthorized()) {
-			Intent intent = new Intent(this, Auth.class);
-			startActivity(intent);
-			finish();
-			return;
-		}
-		rosyama.setStateListener(this);
+		rosyama.setUpdateListener(this);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		rosyama.setStateListener(null);
+		rosyama.setUpdateListener(null);
 	}
 
 	@Override
@@ -94,7 +91,7 @@ public class Main extends Activity implements OnClickListener,
 				requestedUri = null;
 			else {
 				rosyama.createHole(requestedUri);
-				Intent intent = new Intent(this, Edit.class);
+				Intent intent = new Intent(this, HoleEdit.class);
 				startActivity(intent);
 			}
 			break;
@@ -115,9 +112,6 @@ public class Main extends Activity implements OnClickListener,
 		switch (item.getItemId()) {
 		case OPTION_MENU_LOGOUT_ID:
 			rosyama.logout();
-			Intent intent = new Intent(this, Auth.class);
-			startActivity(intent);
-			finish();
 			return true;
 		}
 		return false;
@@ -125,12 +119,16 @@ public class Main extends Activity implements OnClickListener,
 
 	@Override
 	public void onClick(View v) {
+		Intent intent;
 		switch (v.getId()) {
 		case R.id.create:
-			showDialog(DIALOG_CREATE_ID);
+			// TODO: showDialog(DIALOG_CREATE_ID);
+			rosyama.createHole(Uri.fromFile(new File("/sdcard/test.jpg")));
+			intent = new Intent(this, HoleEdit.class);
+			startActivity(intent);
 			break;
 		case R.id.list:
-			Intent intent = new Intent(this, List.class);
+			intent = new Intent(this, HoleList.class);
 			startActivity(intent);
 			break;
 		}
@@ -170,6 +168,12 @@ public class Main extends Activity implements OnClickListener,
 	}
 
 	@Override
-	public void onStateChange() {
+	public void onUpdate() {
+		if (!rosyama.getAuthorizeOperation().isComplited()) {
+			Intent intent = new Intent(this, Auth.class);
+			startActivity(intent);
+			finish();
+			return;
+		}
 	}
 }
