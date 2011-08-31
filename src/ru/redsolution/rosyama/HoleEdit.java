@@ -53,6 +53,7 @@ public class HoleEdit extends Activity implements OnClickListener,
 
 		hole = rosyama.getHole(getIntent().getStringExtra(EXTRA_ID));
 		if (hole == null) {
+			checkSendComplited();
 			finish();
 			return;
 		}
@@ -186,14 +187,21 @@ public class HoleEdit extends Activity implements OnClickListener,
 		} else
 			progressDialog.dismiss();
 
+		checkSendComplited();
+		if (rosyama.getSendOperation().isComplited()) {
+			finish();
+			rosyama.getSendOperation().clear();
+		}
+	}
+
+	/**
+	 * Проверяет была ли завершена отправка и открывает предпросмотр дефекта.
+	 */
+	private void checkSendComplited() {
 		if (rosyama.getSendOperation().isComplited()) {
 			Intent intent = new Intent(this, HoleDetail.class);
 			intent.putExtra(EXTRA_ID, rosyama.getSendOperation().getId());
 			startActivity(intent);
-			finish();
-			rosyama.getSendOperation().clear();
-		}
-		if (rosyama.getSendOperation().isComplited()) {
 			finish();
 			rosyama.getSendOperation().clear();
 		}

@@ -420,19 +420,19 @@ public class Rosyama extends Application implements UpdateListener {
 	 * @author alexander.ivanov
 	 * 
 	 */
-	public class SendOperation extends AbstractOperation<Hole, String> {
+	public class SendOperation extends AbstractOperation<Hole, Hole> {
 		/**
 		 * Идентификатор отправленного дефекта.
 		 */
-		private String id;
+		private Hole hole;
 
 		public SendOperation() {
 			super(Rosyama.this);
-			id = null;
+			hole = null;
 		}
 
 		@Override
-		String process(Hole... params) throws LocalizedException {
+		Hole process(Hole... params) throws LocalizedException {
 			Hole hole = params[0];
 			HashMap<String, String> form = new HashMap<String, String>();
 			form.put("login", getLogin());
@@ -477,17 +477,28 @@ public class Rosyama extends Application implements UpdateListener {
 			Element callresult = (Element) nodeList.item(0);
 			if (!"1".equals(callresult.getAttribute("result")))
 				throw new LocalizedException(R.string.hole_fail);
-			return callresult.getAttribute("inserteddefectid");
+			String id = callresult.getAttribute("inserteddefectid");
+			form.clear();
+			form.put("login", getLogin());
+			form.put("password", getPassword());
+			element = client.getCheckedElement(client.post(
+					String.format(XML_HOST + "/my/%s", id), form, null));
+			for (Element holeElement : new ElementIterable(
+					element.getElementsByTagName("hole")))
+				return parseHole(holeElement);
+			throw new LocalizedException(R.string.data_fail);
 		}
 
 		@Override
 		void onClear() {
-			id = null;
+			hole = null;
 		}
 
 		@Override
-		void onSuccess(String result) {
-			id = result;
+		void onSuccess(Hole result) {
+			hole = result;
+			holes.remove(getHole(null));
+			holes.add(result);
 		}
 
 		/**
@@ -496,7 +507,7 @@ public class Rosyama extends Application implements UpdateListener {
 		 * @return
 		 */
 		public String getId() {
-			return id;
+			return hole.getId();
 		}
 
 	}
