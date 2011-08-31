@@ -3,6 +3,8 @@ package ru.redsolution.rosyama.data;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,10 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -24,8 +22,6 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -62,9 +58,14 @@ public class Rosyama extends Application implements UpdateListener {
 	private static final String YANDEX_KEY = "ACG3DU0BAAAA6wkJGgQAgRY2ChXSECRoRN9yDmLrz_wSRYQAAAAAAAAAAABC1YjXH-X5KWN_NyvBCtLgrvoZSg==";
 
 	/**
-	 * URL геокодера.
+	 * Геокодер.
 	 */
-	private static final String YANDEX_URL = "http://geocode-maps.yandex.ru/1.x/?format=json&key=%s&geocode=%s%%2C%s&results=1";
+	private static final String YANDEX_LOCATION = "http://geocode-maps.yandex.ru/1.x/?key=%s&geocode=%s&results=1";
+
+	/**
+	 * Обратный геокодер.
+	 */
+	private static final String YANDEX_ADDRESS = "http://geocode-maps.yandex.ru/1.x/?key=%s&geocode=%s%%2C%s&results=1";
 
 	/**
 	 * XML хост РосЯмы.
@@ -554,102 +555,8 @@ public class Rosyama extends Application implements UpdateListener {
 			Element element = client.getCheckedElement(client.post(XML_HOST
 					+ "/my/", form, null));
 			for (Element hole : new ElementIterable(
-					element.getElementsByTagName("hole"))) {
-				String id = hole.getAttribute("id");
-				String latitude = null;
-				String longitude = null;
-				String address = null;
-				String state = null;
-				String type = null;
-				String datecreated = null;
-				String commentfresh = null;
-				ArrayList<String> original = new ArrayList<String>();
-				ArrayList<String> small = new ArrayList<String>();
-				for (Element property : new ElementIterable(
-						hole.getChildNodes())) {
-					if ("latitude".equals(property.getTagName()))
-						latitude = Client.getTextContent(property);
-					if ("longitude".equals(property.getTagName()))
-						longitude = Client.getTextContent(property);
-					if ("address".equals(property.getTagName()))
-						address = Client.getTextContent(property);
-					if ("state".equals(property.getTagName()))
-						state = property.getAttribute("code");
-					if ("type".equals(property.getTagName()))
-						type = property.getAttribute("code");
-					if ("datecreated".equals(property.getTagName()))
-						datecreated = Client.getTextContent(property);
-					if ("commentfresh".equals(property.getTagName()))
-						commentfresh = Client.getTextContent(property);
-					if ("pictures".equals(property.getTagName()))
-						for (Element group : new ElementIterable(
-								property.getChildNodes())) {
-							ArrayList<String> current = null;
-							if ("original".equals(group.getTagName()))
-								current = original;
-							if ("small".equals(group.getTagName()))
-								current = small;
-							if (current == null)
-								continue;
-							for (Element fresh : new ElementIterable(
-									group.getElementsByTagName("fresh")))
-								for (Element src : new ElementIterable(
-										fresh.getElementsByTagName("src")))
-									current.add(Client.getTextContent(src));
-						}
-				}
-
-				if (latitude == null || longitude == null)
-					throw new LocalizedException(R.string.data_fail);
-				Location location = new Location(LocationManager.GPS_PROVIDER);
-				try {
-					location.setLatitude(Double.valueOf(latitude));
-					location.setLongitude(Double.valueOf(longitude));
-				} catch (NumberFormatException e) {
-					throw new LocalizedException(R.string.data_fail);
-				}
-
-				Type selectedType = null;
-				for (Type check : Type.values())
-					if (check.toString().equals(type))
-						selectedType = check;
-				if (selectedType == null)
-					throw new LocalizedException(R.string.data_fail);
-
-				ru.redsolution.rosyama.data.Status selectedStatus = null;
-				for (ru.redsolution.rosyama.data.Status check : ru.redsolution.rosyama.data.Status
-						.values())
-					// Чудесное API кое-где использует термин state, а
-					// кое-где status :)
-					if (check.toString().equals(state))
-						selectedStatus = check;
-				if (selectedStatus == null)
-					throw new LocalizedException(R.string.data_fail);
-
-				if (original.size() != small.size())
-					throw new LocalizedException(R.string.data_fail);
-				ArrayList<RemotePhoto> photos = new ArrayList<RemotePhoto>();
-				for (int index = 0; index < original.size(); index++)
-					photos.add(new RemotePhoto(Rosyama.this, Uri.parse(WEB_HOST
-							+ original.get(index)), Uri.parse(WEB_HOST
-							+ small.get(index))));
-
-				if (datecreated == null)
-					throw new LocalizedException(R.string.data_fail);
-				Date created;
-				try {
-					created = new Date(Long.valueOf(datecreated) * 1000);
-				} catch (NumberFormatException e) {
-					throw new LocalizedException(R.string.data_fail);
-				}
-
-				if (address == null || commentfresh == null)
-					throw new LocalizedException(R.string.data_fail);
-
-				holes.add(new Hole(Rosyama.this, id, created, location,
-						address, selectedType, selectedStatus, commentfresh,
-						photos));
-			}
+					element.getElementsByTagName("hole")))
+				holes.add(parseHole(hole));
 			return holes;
 		}
 
@@ -781,50 +688,67 @@ public class Rosyama extends Application implements UpdateListener {
 	 * @author alexander.ivanov
 	 * 
 	 */
-	public class AddressOperation extends
-			AbstractOperation<HoleAndLocation, HoleAndAddress> {
+	public class AddressOperation extends AbstractOperation<Location, String> {
+		private String address;
+
 		public AddressOperation() {
 			super(Rosyama.this);
+			address = null;
+		}
+
+		private String getAddressString(Element element) {
+			for (Element geoObjectCollection : new ElementIterable(
+					element.getElementsByTagName("GeoObjectCollection")))
+				for (Element featureMember : new ElementIterable(
+						geoObjectCollection
+								.getElementsByTagName("featureMember")))
+					for (Element geoObject : new ElementIterable(
+							featureMember.getElementsByTagName("GeoObject")))
+						for (Element metaDataProperty : new ElementIterable(
+								geoObject
+										.getElementsByTagName("metaDataProperty")))
+							for (Element geocoderMetaData : new ElementIterable(
+									metaDataProperty
+											.getElementsByTagName("GeocoderMetaData")))
+								for (Element text : new ElementIterable(
+										geocoderMetaData
+												.getElementsByTagName("text")))
+									return Client.getTextContent(text);
+			return null;
 		}
 
 		@Override
-		HoleAndAddress process(HoleAndLocation... params)
-				throws LocalizedException {
-			HoleAndLocation holeAndLocation = params[0];
-			Location location = holeAndLocation.location;
+		String process(Location... params) throws LocalizedException {
+			Location location = params[0];
 			if (location == null)
-				return new HoleAndAddress(holeAndLocation.hole, "");
-			try {
-				String content = client.getString(client.get(String.format(
-						YANDEX_URL, YANDEX_KEY,
-						getPoint(location.getLongitude()),
-						getPoint(location.getLatitude()))));
-				Object json = new JSONTokener(content).nextValue();
-				JSONArray array = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) json)
-						.get("response")).get("GeoObjectCollection"))
-						.get("featureMember");
-				if (array.length() != 1)
-					throw new LocalizedException(R.string.geo_fail);
-				JSONObject object = (JSONObject) (JSONObject) ((JSONObject) array
-						.get(0)).get("GeoObject");
-				return new HoleAndAddress(holeAndLocation.hole,
-						((JSONObject) ((JSONObject) object
-								.get("metaDataProperty"))
-								.get("GeocoderMetaData")).getString("text"));
-			} catch (JSONException e) {
-				if (Client.LOG)
-					e.printStackTrace();
+				return "";
+			Element element = client.getCheckedElement(client.get(String
+					.format(YANDEX_ADDRESS, YANDEX_KEY,
+							getPoint(location.getLongitude()),
+							getPoint(location.getLatitude()))));
+			String address = getAddressString(element);
+			if (address == null)
 				throw new LocalizedException(R.string.data_fail);
-			}
+			return address;
 		}
 
 		@Override
 		void onClear() {
+			address = null;
 		}
 
 		@Override
-		void onSuccess(HoleAndAddress result) {
-			result.hole.setAddress(result.address);
+		void onSuccess(String result) {
+			address = result;
+		}
+
+		/**
+		 * Возвращает полученный адрес.
+		 * 
+		 * @return
+		 */
+		public String getAddress() {
+			return address;
 		}
 	}
 
@@ -834,44 +758,76 @@ public class Rosyama extends Application implements UpdateListener {
 	 * @author alexander.ivanov
 	 * 
 	 */
-	public class LocationOperation extends
-			AbstractOperation<HoleAndAddress, HoleAndLocation> {
+	public class LocationOperation extends AbstractOperation<String, Location> {
+		private Location location;
+
 		public LocationOperation() {
 			super(Rosyama.this);
+			location = null;
+		}
+
+		private String getLocationString(Element element) {
+			for (Element geoObjectCollection : new ElementIterable(
+					element.getElementsByTagName("GeoObjectCollection")))
+				for (Element featureMember : new ElementIterable(
+						geoObjectCollection
+								.getElementsByTagName("featureMember")))
+					for (Element geoObject : new ElementIterable(
+							featureMember.getElementsByTagName("GeoObject")))
+						for (Element point : new ElementIterable(
+								geoObject.getElementsByTagName("Point")))
+							for (Element pos : new ElementIterable(
+									point.getElementsByTagName("pos")))
+								return Client.getTextContent(pos);
+			return null;
 		}
 
 		@Override
-		HoleAndLocation process(HoleAndAddress... params)
-				throws LocalizedException {
-			HoleAndAddress holeAndAddress = params[0];
-			if ("".equals(holeAndAddress.address))
-				return new HoleAndLocation(holeAndAddress.hole, null);
-			Geocoder geoCoder = new Geocoder(Rosyama.this);
-			List<Address> addresses;
+		Location process(String... params) throws LocalizedException {
+			String address = params[0];
+			if ("".equals(address))
+				return null;
+			Element element;
 			try {
-				addresses = geoCoder.getFromLocationName(
-						holeAndAddress.address, 1);
-			} catch (IOException e) {
-				if (Client.LOG)
-					e.printStackTrace();
-				throw new LocalizedException(R.string.io_fail);
-			}
-			if (addresses.size() == 0)
+				element = client.getCheckedElement(client.get(String.format(
+						YANDEX_LOCATION, YANDEX_KEY,
+						URLEncoder.encode(address, "UTF-8"))));
+			} catch (UnsupportedEncodingException e) {
 				throw new LocalizedException(R.string.data_fail);
-			Address address = addresses.get(0);
+			}
+			String position = getLocationString(element);
+			if (position == null)
+				throw new LocalizedException(R.string.data_fail);
+			String[] values = position.split(" ");
+			if (values.length != 2)
+				throw new LocalizedException(R.string.data_fail);
 			Location location = new Location(LocationManager.GPS_PROVIDER);
-			location.setLatitude(address.getLatitude());
-			location.setLongitude(address.getLongitude());
-			return new HoleAndLocation(holeAndAddress.hole, location);
+			try {
+				location.setLongitude(Double.valueOf(values[0]));
+				location.setLatitude(Double.valueOf(values[1]));
+			} catch (NumberFormatException e) {
+				throw new LocalizedException(R.string.data_fail);
+			}
+			return location;
 		}
 
 		@Override
 		void onClear() {
+			location = null;
 		}
 
 		@Override
-		void onSuccess(HoleAndLocation result) {
-			result.hole.setLocation(result.location);
+		void onSuccess(Location result) {
+			location = result;
+		}
+
+		/**
+		 * Возвращает полученную точку.
+		 * 
+		 * @return
+		 */
+		public Location getLocation() {
+			return location;
 		}
 	}
 
@@ -897,26 +853,107 @@ public class Rosyama extends Application implements UpdateListener {
 		}
 	}
 
-	public static class HoleAndAddress {
-		final Hole hole;
-		final String address;
-
-		public HoleAndAddress(Hole hole, String address) {
-			super();
-			this.hole = hole;
-			this.address = address;
+	/**
+	 * Производит разбор дефекта.
+	 * 
+	 * @param hole
+	 *            Елемент DOM-а, содержащий дефект.
+	 * @return
+	 * @throws LocalizedException
+	 */
+	private Hole parseHole(Element hole) throws LocalizedException {
+		String id = hole.getAttribute("id");
+		String latitude = null;
+		String longitude = null;
+		String address = null;
+		String state = null;
+		String type = null;
+		String datecreated = null;
+		String commentfresh = null;
+		ArrayList<String> original = new ArrayList<String>();
+		ArrayList<String> small = new ArrayList<String>();
+		for (Element property : new ElementIterable(hole.getChildNodes())) {
+			if ("latitude".equals(property.getTagName()))
+				latitude = Client.getTextContent(property);
+			if ("longitude".equals(property.getTagName()))
+				longitude = Client.getTextContent(property);
+			if ("address".equals(property.getTagName()))
+				address = Client.getTextContent(property);
+			if ("state".equals(property.getTagName()))
+				state = property.getAttribute("code");
+			if ("type".equals(property.getTagName()))
+				type = property.getAttribute("code");
+			if ("datecreated".equals(property.getTagName()))
+				datecreated = Client.getTextContent(property);
+			if ("commentfresh".equals(property.getTagName()))
+				commentfresh = Client.getTextContent(property);
+			if ("pictures".equals(property.getTagName()))
+				for (Element group : new ElementIterable(
+						property.getChildNodes())) {
+					ArrayList<String> current = null;
+					if ("original".equals(group.getTagName()))
+						current = original;
+					if ("small".equals(group.getTagName()))
+						current = small;
+					if (current == null)
+						continue;
+					for (Element fresh : new ElementIterable(
+							group.getElementsByTagName("fresh")))
+						for (Element src : new ElementIterable(
+								fresh.getElementsByTagName("src")))
+							current.add(Client.getTextContent(src));
+				}
 		}
-	}
 
-	public static class HoleAndLocation {
-		final Hole hole;
-		final Location location;
-
-		public HoleAndLocation(Hole hole, Location location) {
-			super();
-			this.hole = hole;
-			this.location = location;
+		if (latitude == null || longitude == null)
+			throw new LocalizedException(R.string.data_fail);
+		Location location = new Location(LocationManager.GPS_PROVIDER);
+		try {
+			location.setLatitude(Double.valueOf(latitude));
+			location.setLongitude(Double.valueOf(longitude));
+		} catch (NumberFormatException e) {
+			throw new LocalizedException(R.string.data_fail);
 		}
+
+		Type selectedType = null;
+		for (Type check : Type.values())
+			if (check.toString().equals(type))
+				selectedType = check;
+		if (selectedType == null)
+			throw new LocalizedException(R.string.data_fail);
+
+		ru.redsolution.rosyama.data.Status selectedStatus = null;
+		for (ru.redsolution.rosyama.data.Status check : ru.redsolution.rosyama.data.Status
+				.values())
+			// Чудесное API кое-где использует термин state, а
+			// кое-где status :)
+			if (check.toString().equals(state))
+				selectedStatus = check;
+		if (selectedStatus == null)
+			throw new LocalizedException(R.string.data_fail);
+
+		if (original.size() != small.size())
+			throw new LocalizedException(R.string.data_fail);
+		ArrayList<RemotePhoto> photos = new ArrayList<RemotePhoto>();
+		for (int index = 0; index < original.size(); index++)
+			photos.add(new RemotePhoto(Rosyama.this, Uri.parse(WEB_HOST
+					+ original.get(index)), Uri.parse(WEB_HOST
+					+ small.get(index))));
+
+		if (datecreated == null)
+			throw new LocalizedException(R.string.data_fail);
+		Date created;
+		try {
+			created = new Date(Long.valueOf(datecreated) * 1000);
+		} catch (NumberFormatException e) {
+			throw new LocalizedException(R.string.data_fail);
+		}
+
+		if (address == null || commentfresh == null)
+			throw new LocalizedException(R.string.data_fail);
+
+		return new Hole(Rosyama.this, id, created, location, address,
+				selectedType, selectedStatus, commentfresh, photos);
 	}
 
 	@Override
@@ -937,14 +974,5 @@ public class Rosyama extends Application implements UpdateListener {
 	public static Uri getNextJpegUri() {
 		return Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
 				getNextFileName(".jpeg")));
-	}
-
-	/**
-	 * Возвращает вспомогательный клиент.
-	 * 
-	 * @return
-	 */
-	public Client getClient() {
-		return client;
 	}
 }

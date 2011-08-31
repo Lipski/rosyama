@@ -29,14 +29,24 @@
         android:id="@+id/done"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/btn_orange"
+        android:layout_margin="4dip"
         android:text="@string/map_done"
         />
-	<com.google.android.maps.MapView
-	    android:id="@+id/map"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-	    android:clickable="true"
-	    android:apiKey="@string/map_key"
-		/>
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+    	<com.google.android.maps.MapView
+    	    android:id="@+id/map"
+    	    android:layout_width="fill_parent"
+    	    android:layout_height="fill_parent"
+    	    android:clickable="true"
+    	    android:apiKey="@string/map_key"
+    		/>
+        <ImageView android:id="@+id/drag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/marker"
+            android:visibility="gone"
+            />             
+    </RelativeLayout>
 </LinearLayout>
