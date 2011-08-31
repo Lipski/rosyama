@@ -18,8 +18,6 @@ import android.widget.TabHost;
 
 public class HoleList extends TabActivity implements OnItemClickListener,
 		UpdateListener, OnCancelListener {
-	private static final String SAVED_FIRST_RESUME = "SAVED_FIRST_RESUME";
-
 	/**
 	 * Приложение.
 	 */
@@ -29,11 +27,6 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 	 * Диалог выполнения задания.
 	 */
 	private ProgressDialog progressDialog;
-
-	/**
-	 * Вперые отображаем список дефектов.
-	 */
-	private boolean firstResume;
 
 	private ListView freshListView;
 	private ListView inprogressListView;
@@ -60,11 +53,8 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 		fixedListView.setAdapter(new HoleAdapter(this, Status.fixed));
 		fixedListView.setOnItemClickListener(this);
 
-		if (savedInstanceState != null) {
-			firstResume = savedInstanceState.getBoolean(SAVED_FIRST_RESUME,
-					true);
-		} else {
-			firstResume = true;
+		if (savedInstanceState == null) {
+			rosyama.getListOperation().execute();
 		}
 
 		progressDialog = new ProgressDialog(this);
@@ -75,10 +65,6 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (firstResume) {
-			firstResume = false;
-			rosyama.getListOperation().execute();
-		}
 		((Rosyama) getApplication()).setUpdateListener(this);
 	}
 
@@ -86,12 +72,6 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 	protected void onPause() {
 		super.onPause();
 		((Rosyama) getApplication()).setUpdateListener(null);
-	}
-
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putBoolean(SAVED_FIRST_RESUME, firstResume);
 	}
 
 	/**

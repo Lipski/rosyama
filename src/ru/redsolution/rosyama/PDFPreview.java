@@ -17,8 +17,6 @@ import android.widget.TextView;
 
 public class PDFPreview extends Activity implements OnClickListener,
 		UpdateListener, DialogClickListener, OnCancelListener {
-	private static final String SAVED_FIRST_RESUME = "SAVED_FIRST_RESUME";
-
 	/**
 	 * Extra парамент с этим именем должен содержать номер редактируемой ямы.
 	 */
@@ -39,11 +37,6 @@ public class PDFPreview extends Activity implements OnClickListener,
 	 */
 	private Hole hole;
 
-	/**
-	 * Вперые отображаем список дефектов.
-	 */
-	private boolean firstResume;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -55,11 +48,8 @@ public class PDFPreview extends Activity implements OnClickListener,
 			return;
 		}
 
-		if (savedInstanceState != null) {
-			firstResume = savedInstanceState.getBoolean(SAVED_FIRST_RESUME,
-					true);
-		} else {
-			firstResume = true;
+		if (savedInstanceState == null) {
+			rosyama.getHeadOperation().execute(hole);
 		}
 
 		progressDialog = new ProgressDialog(this);
@@ -76,10 +66,6 @@ public class PDFPreview extends Activity implements OnClickListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (firstResume) {
-			firstResume = false;
-			rosyama.getHeadOperation().execute(hole);
-		}
 		((Rosyama) getApplication()).setUpdateListener(this);
 	}
 

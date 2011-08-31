@@ -1,7 +1,5 @@
 package ru.redsolution.rosyama;
 
-import java.io.File;
-
 import ru.redsolution.rosyama.data.Rosyama;
 import ru.redsolution.rosyama.data.UpdateListener;
 import android.app.Activity;
@@ -122,10 +120,10 @@ public class Main extends Activity implements OnClickListener,
 		Intent intent;
 		switch (v.getId()) {
 		case R.id.create:
-			// TODO: showDialog(DIALOG_CREATE_ID);
-			rosyama.createHole(Uri.fromFile(new File("/sdcard/test.jpg")));
-			intent = new Intent(this, HoleEdit.class);
-			startActivity(intent);
+			showDialog(DIALOG_CREATE_ID);
+			// rosyama.createHole(Uri.fromFile(new File("/sdcard/test.jpg")));
+			// intent = new Intent(this, HoleEdit.class);
+			// startActivity(intent);
 			break;
 		case R.id.list:
 			intent = new Intent(this, HoleList.class);
