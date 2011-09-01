@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/background"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/background_repeat"
     >
     <LinearLayout
+        android:id="@+id/dot"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"            
-        android:background="@drawable/dot_repeat"
         android:layout_marginTop="2dip"
         />
     <TextView
@@ -45,9 +45,9 @@
         android:text="@string/hole_list_label"
         />
     <LinearLayout
+        android:id="@+id/dot2"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"            
-        android:background="@drawable/dot_repeat"
         android:layout_marginTop="20dip"
         android:layout_marginBottom="2dip"
         />

@@ -67,6 +67,8 @@ public class PDFPreview extends Activity implements OnClickListener,
 	protected void onResume() {
 		super.onResume();
 		((Rosyama) getApplication()).setUpdateListener(this);
+		InterfaceUtilities.setTiledBackground(this, R.id.background,
+				R.drawable.background);
 	}
 
 	@Override

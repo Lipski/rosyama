@@ -64,6 +64,8 @@ public class HoleDetail extends Activity implements OnClickListener,
 			return;
 		}
 		((Rosyama) getApplication()).setUpdateListener(this);
+		InterfaceUtilities.setTiledBackground(this, R.id.background,
+				R.drawable.background);
 	}
 
 	@Override

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/background"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/background_repeat"
     >
     <LinearLayout
         android:orientation="vertical"
@@ -12,9 +12,9 @@
         android:padding="0dip"
         >
         <LinearLayout
+            android:id="@+id/dot"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"            
-            android:background="@drawable/dot_repeat"
             android:layout_marginTop="2dip"
             />
         <ImageView
@@ -56,10 +56,7 @@
 	        android:id="@+id/register"
 	        android:layout_width="fill_parent" 
 	        android:layout_height="wrap_content" 
-            android:layout_marginLeft="4dip"
-            android:layout_marginRight="4dip"
-            android:layout_marginTop="16dip"
-            android:layout_marginBottom="4dip"
+            android:layout_margin="4dip"
 	        android:text="@string/register"
     	    />
         <!--

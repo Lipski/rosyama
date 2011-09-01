@@ -75,6 +75,10 @@ public class Main extends Activity implements OnClickListener,
 	protected void onResume() {
 		super.onResume();
 		rosyama.setUpdateListener(this);
+		InterfaceUtilities.setTiledBackground(this, R.id.background,
+				R.drawable.background);
+		InterfaceUtilities.setTiledBackground(this, R.id.dot, R.drawable.dot);
+		InterfaceUtilities.setTiledBackground(this, R.id.dot2, R.drawable.dot);
 	}
 
 	@Override
