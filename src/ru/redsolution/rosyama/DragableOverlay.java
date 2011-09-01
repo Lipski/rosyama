@@ -23,8 +23,8 @@ import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
@@ -40,10 +40,12 @@ public class DragableOverlay extends ItemizedOverlay<OverlayItem> {
 	private Drawable marker;
 	private OverlayItem inDrag;
 	private ImageView dragImage;
-	private int xDragImageOffset;
-	private int yDragImageOffset;
 	private int xDragTouchOffset;
 	private int yDragTouchOffset;
+	private final int xDragImageSize;
+	private final int yDragImageSize;
+	private final int xDragImageOffset;
+	private final int yDragImageOffset;
 	private OnDropMarkerListener onDropMarkerListener;
 
 	public DragableOverlay(Drawable marker, ImageView dragImage) {
@@ -52,10 +54,12 @@ public class DragableOverlay extends ItemizedOverlay<OverlayItem> {
 		this.marker = marker;
 		this.inDrag = null;
 		this.dragImage = dragImage;
-		this.xDragImageOffset = dragImage.getDrawable().getIntrinsicWidth() / 2;
-		this.yDragImageOffset = dragImage.getDrawable().getIntrinsicHeight();
 		this.xDragTouchOffset = 0;
 		this.yDragTouchOffset = 0;
+		this.xDragImageSize = dragImage.getDrawable().getIntrinsicWidth();
+		this.yDragImageSize = dragImage.getDrawable().getIntrinsicHeight();
+		this.xDragImageOffset = dragImage.getDrawable().getIntrinsicWidth() / 2;
+		this.yDragImageOffset = dragImage.getDrawable().getIntrinsicHeight();
 		this.onDropMarkerListener = null;
 		populate();
 	}
@@ -182,11 +186,14 @@ public class DragableOverlay extends ItemizedOverlay<OverlayItem> {
 	}
 
 	private void setDragImagePosition(int x, int y) {
-		RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) dragImage
+		MarginLayoutParams lp = (MarginLayoutParams) dragImage
 				.getLayoutParams();
 
+		// Правый и нижний отступ позволяют избежать изменения размеров
+		// изображения на краях экрана.
 		lp.setMargins(x - xDragImageOffset - xDragTouchOffset, y
-				- yDragImageOffset - yDragTouchOffset, 0, 0);
+				- yDragImageOffset - yDragTouchOffset, -xDragImageSize,
+				-yDragImageSize);
 		dragImage.setLayoutParams(lp);
 	}
 }
