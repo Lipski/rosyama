@@ -338,24 +338,26 @@ public class Client {
 		Element element = getDOMElement(entity);
 		NodeList nodeList = element.getElementsByTagName("error");
 		String lastError = null;
-		for (int index = 0; index < nodeList.getLength(); index++) {
-			Node node = nodeList.item(index);
-			String code = node.getAttributes().getNamedItem("code")
-					.getNodeValue();
+		for (Element error : new ElementIterable(nodeList)) {
+			String code = error.getAttribute("code");
 			if (LOG)
 				System.out.println(code);
-			if (code.equals(WRONG_CREDENTIALS))
+			if (WRONG_CREDENTIALS.equals(code))
 				throw new LocalizedException(R.string.auth_fail);
-			else if (code.equals(AUTHORIZATION_REQUIRED))
+			else if (AUTHORIZATION_REQUIRED.equals(code))
 				throw new LocalizedException(R.string.auth_required);
-			else if (code.equals(CANNOT_ADD_DEFECT))
+			else if (CANNOT_ADD_DEFECT.equals(code))
 				throw new LocalizedException(R.string.cannot_add_defect,
-						getTextContent(node));
+						getTextContent(error));
 			else
-				lastError = getTextContent(node);
+				lastError = getTextContent(error);
 		}
-		if (lastError != null)
-			throw new LocalizedException(R.string.server_error, lastError);
+		if (lastError != null) {
+			if ("".equals(lastError))
+				throw new LocalizedException(R.string.data_fail);
+			else
+				throw new LocalizedException(R.string.server_error, lastError);
+		}
 		return element;
 	}
 
