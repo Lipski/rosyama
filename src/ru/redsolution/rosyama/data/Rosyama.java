@@ -483,12 +483,16 @@ public class Rosyama extends Application implements UpdateListener,
 			Element callresult = (Element) nodeList.item(0);
 			if (!"1".equals(callresult.getAttribute("result")))
 				throw new LocalizedException(R.string.hole_fail);
-			String id = callresult.getAttribute("inserteddefectid");
+			String id;
+			if (hole.getId() == null)
+				id = callresult.getAttribute("inserteddefectid");
+			else
+				id = hole.getId();
 			form.clear();
 			form.put("login", getLogin());
 			form.put("password", getPassword());
 			element = client.getCheckedElement(client.post(
-					String.format(XML_HOST + "/my/%s", id), form, null));
+					String.format(XML_HOST + "/my/%s/", id), form, null));
 			for (Element holeElement : new ElementIterable(
 					element.getElementsByTagName("hole")))
 				return new HoleAndHole(hole, parseHole(holeElement));
@@ -502,9 +506,10 @@ public class Rosyama extends Application implements UpdateListener,
 
 		@Override
 		void onSuccess(HoleAndHole result) {
+			int index = holes.indexOf(result.source);
 			holes.remove(result.source);
+			holes.add(index, result.result);
 			hole = result.result;
-			holes.add(result.result);
 		}
 
 		/**
