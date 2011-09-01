@@ -136,45 +136,38 @@ public class DragableOverlay extends ItemizedOverlay<OverlayItem> {
 		final int action = event.getAction();
 		final int x = (int) event.getX();
 		final int y = (int) event.getY();
+		int xAllowed = Math.min(Math.max(x, 0), mapView.getWidth());
+		int yAllowed = Math.min(Math.max(y, 0), mapView.getHeight());
 		boolean result = false;
 
 		if (action == MotionEvent.ACTION_DOWN) {
+			Point p = new Point(0, 0);
 			for (OverlayItem item : items) {
-				Point p = new Point(0, 0);
-
 				mapView.getProjection().toPixels(item.getPoint(), p);
-
 				if (hitTest(item, marker, x - p.x, y - p.y)) {
 					result = true;
 					inDrag = item;
-					items.remove(inDrag);
-					populate();
-
-					xDragTouchOffset = 0;
-					yDragTouchOffset = 0;
-
-					setDragImagePosition(p.x, p.y);
-					dragImage.setVisibility(View.VISIBLE);
+					removeItem(inDrag);
 
 					xDragTouchOffset = x - p.x;
 					yDragTouchOffset = y - p.y;
 
+					setDragImagePosition(x, y);
+					dragImage.setVisibility(View.VISIBLE);
 					break;
 				}
 			}
 		} else if (action == MotionEvent.ACTION_MOVE && inDrag != null) {
-			setDragImagePosition(x, y);
+			setDragImagePosition(xAllowed, yAllowed);
 			result = true;
 		} else if (action == MotionEvent.ACTION_UP && inDrag != null) {
 			dragImage.setVisibility(View.GONE);
 
 			GeoPoint pt = mapView.getProjection().fromPixels(
-					x - xDragTouchOffset, y - yDragTouchOffset);
+					xAllowed - xDragTouchOffset, yAllowed - yDragTouchOffset);
 			OverlayItem toDrop = new OverlayItem(pt, inDrag.getTitle(),
 					inDrag.getSnippet());
-
-			items.add(toDrop);
-			populate();
+			addItem(toDrop);
 
 			inDrag = null;
 			result = true;
