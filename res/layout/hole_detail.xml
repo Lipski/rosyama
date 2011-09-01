@@ -129,11 +129,18 @@
             </LinearLayout>
         </LinearLayout>
         <Button
-            android:id="@+id/pdf"
+            android:id="@+id/pdf_preview"
             android:layout_width="fill_parent" 
             android:layout_height="wrap_content"
             android:layout_margin="4dip"
             android:text="@string/pdf_preview"
+        />
+        <Button
+            android:id="@+id/hole_edit"
+            android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            android:layout_margin="4dip"
+            android:text="@string/hole_edit"
         />
     </LinearLayout>
 </ScrollView>

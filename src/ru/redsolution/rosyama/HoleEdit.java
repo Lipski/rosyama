@@ -188,9 +188,9 @@ public class HoleEdit extends Activity implements OnClickListener,
 			progressDialog.dismiss();
 
 		checkSendComplited();
-		if (rosyama.getSendOperation().isComplited()) {
+		if (rosyama.getDeleteOperation().isComplited()) {
 			finish();
-			rosyama.getSendOperation().clear();
+			rosyama.getDeleteOperation().clear();
 		}
 	}
 
@@ -199,9 +199,11 @@ public class HoleEdit extends Activity implements OnClickListener,
 	 */
 	private void checkSendComplited() {
 		if (rosyama.getSendOperation().isComplited()) {
-			Intent intent = new Intent(this, HoleDetail.class);
-			intent.putExtra(EXTRA_ID, rosyama.getSendOperation().getId());
-			startActivity(intent);
+			if (hole.getId() == null) {
+				Intent intent = new Intent(this, HoleDetail.class);
+				intent.putExtra(EXTRA_ID, rosyama.getSendOperation().getId());
+				startActivity(intent);
+			}
 			finish();
 			rosyama.getSendOperation().clear();
 		}

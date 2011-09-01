@@ -5,6 +5,7 @@ import java.util.Collection;
 import ru.redsolution.rosyama.data.AbstractPhoto;
 import ru.redsolution.rosyama.data.Hole;
 import ru.redsolution.rosyama.data.Rosyama;
+import ru.redsolution.rosyama.data.Status;
 import ru.redsolution.rosyama.data.Type;
 import ru.redsolution.rosyama.data.UpdateListener;
 import android.app.Activity;
@@ -40,12 +41,28 @@ public class HoleDetail extends Activity implements OnClickListener,
 		}
 
 		findViewById(R.id.photo_panel).setOnClickListener(this);
-		findViewById(R.id.pdf).setOnClickListener(this);
+		findViewById(R.id.pdf_preview).setOnClickListener(this);
+
+		if (hole.getStatus() == Status.fresh)
+			findViewById(R.id.hole_edit).setVisibility(View.VISIBLE);
+		else
+			findViewById(R.id.hole_edit).setVisibility(View.GONE);
+		findViewById(R.id.hole_edit).setOnClickListener(this);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+		Hole newHole = rosyama.getHole(hole.getId());
+		if (newHole != hole) {
+			if (newHole != null) {
+				Intent intent = new Intent(this, HoleDetail.class);
+				intent.putExtra(HoleEdit.EXTRA_ID, hole.getId());
+				startActivity(intent);
+			}
+			finish();
+			return;
+		}
 		((Rosyama) getApplication()).setUpdateListener(this);
 	}
 
@@ -65,8 +82,13 @@ public class HoleDetail extends Activity implements OnClickListener,
 			intent.putExtra(PhotoList.EXRTA_READ_ONLY, true);
 			startActivity(intent);
 			break;
-		case R.id.pdf:
+		case R.id.pdf_preview:
 			intent = new Intent(this, PDFPreview.class);
+			intent.putExtra(HoleEdit.EXTRA_ID, hole.getId());
+			startActivity(intent);
+			break;
+		case R.id.hole_edit:
+			intent = new Intent(this, HoleEdit.class);
 			intent.putExtra(HoleEdit.EXTRA_ID, hole.getId());
 			startActivity(intent);
 			break;

@@ -423,7 +423,7 @@ public class Rosyama extends Application implements UpdateListener,
 	 * @author alexander.ivanov
 	 * 
 	 */
-	public class SendOperation extends AbstractOperation<Hole, Hole> {
+	public class SendOperation extends AbstractOperation<Hole, HoleAndHole> {
 		/**
 		 * Идентификатор отправленного дефекта.
 		 */
@@ -435,7 +435,7 @@ public class Rosyama extends Application implements UpdateListener,
 		}
 
 		@Override
-		Hole process(Hole... params) throws LocalizedException {
+		HoleAndHole process(Hole... params) throws LocalizedException {
 			Hole hole = params[0];
 			HashMap<String, String> form = new HashMap<String, String>();
 			form.put("login", getLogin());
@@ -491,7 +491,7 @@ public class Rosyama extends Application implements UpdateListener,
 					String.format(XML_HOST + "/my/%s", id), form, null));
 			for (Element holeElement : new ElementIterable(
 					element.getElementsByTagName("hole")))
-				return parseHole(holeElement);
+				return new HoleAndHole(hole, parseHole(holeElement));
 			throw new LocalizedException(R.string.data_fail);
 		}
 
@@ -501,10 +501,10 @@ public class Rosyama extends Application implements UpdateListener,
 		}
 
 		@Override
-		void onSuccess(Hole result) {
-			hole = result;
-			holes.remove(getHole(null));
-			holes.add(result);
+		void onSuccess(HoleAndHole result) {
+			holes.remove(result.source);
+			hole = result.result;
+			holes.add(result.result);
 		}
 
 		/**
@@ -867,6 +867,17 @@ public class Rosyama extends Application implements UpdateListener,
 			super();
 			this.hole = hole;
 			this.head = head;
+		}
+	}
+
+	private static class HoleAndHole {
+		final Hole source;
+		final Hole result;
+
+		public HoleAndHole(Hole source, Hole result) {
+			super();
+			this.source = source;
+			this.result = result;
 		}
 	}
 

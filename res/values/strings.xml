@@ -63,6 +63,9 @@
 <!-- Просмотр дефекта -->
     <string name="hole_detail_title">Просмотр дефекта</string>
     <string name="pdf_preview">Форма заявления в ГИБДД</string>
+    <string name="hole_edit">Редактировать</string>
+    <string name="move_inprogress">Дефект отправлен в ГИБДД</string>
+    <string name="move_fixed">Дефект устанен</string>
     
 <!-- Предпросмотр PDF -->
     <string name="pdf_previed_title">Форма заявления в ГИБДД</string>
@@ -76,7 +79,7 @@
     <string name="signature_hint">Укажите вашу фамилию и инициалы</string>
     <string name="pdf">Получить заявление</string>
     <string name="pdf_choose">Варианты отправки</string>
-    <string name="pdf_dialog">Проверьте реквизиты и мы загрузим заявление в формате PDF. Вы сможете отправить его, например, на свою электронную почту.</string>
+    <string name="pdf_dialog">Сейчас мы загрузим заявление в формате pdf. Вы сможете отправить его, например, на свою электронную почту. Полученное заявление нужно будет распечатать и отправить в местное ГИБДД.</string>
 
     <string name="head_request">Идет поиск главы ГИБДД. Пожалуйста подождите ...</string>
     <string name="pdf_request">Идет получение заявления. Пожалуйста подождите ...</string>
