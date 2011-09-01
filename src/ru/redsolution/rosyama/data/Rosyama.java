@@ -41,7 +41,7 @@ public class Rosyama extends Application implements UpdateListener,
 	/**
 	 * Писать логи, использовать точку по умолчанию для геокодинга.
 	 */
-	static final boolean DEBUG = true;
+	static final boolean DEBUG = false;
 
 	/**
 	 * Формат имени файла для записи запросов и ответов.
