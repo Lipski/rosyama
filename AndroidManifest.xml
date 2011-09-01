@@ -8,6 +8,7 @@
         <activity
             android:name=".Main"
             android:label="@string/app_name"
+            android:theme="@android:style/Theme.NoTitleBar"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -15,12 +16,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".Auth" android:label="@string/app_name" android:theme="@android:style/Theme.NoTitleBar" />
-        <activity android:name=".HoleEdit" android:label="@string/app_name" />
-        <activity android:name=".PhotoList" android:label="@string/app_name" />
-        <activity android:name=".Map" android:label="@string/app_name" />
-        <activity android:name=".HoleList" android:label="@string/app_name" />
-        <activity android:name=".HoleDetail" android:label="@string/app_name" />
-        <activity android:name=".PDFPreview" android:label="@string/app_name" />
+        <activity android:name=".HoleEdit" android:label="@string/hole_edit_title" />
+        <activity android:name=".PhotoList" android:label="@string/photo_list_title" />
+        <activity android:name=".Map" android:label="@string/map_title" android:theme="@android:style/Theme.NoTitleBar" />
+        <activity android:name=".HoleList" android:label="@string/app_name" android:theme="@android:style/Theme.NoTitleBar" />
+        <activity android:name=".HoleDetail" android:label="@string/hole_detail_title" />
+        <activity android:name=".PDFPreview" android:label="@string/pdf_previed_title" />
         <uses-library android:name="com.google.android.maps" />
     </application>
     <uses-permission android:name="android.permission.INTERNET" />

@@ -2,7 +2,10 @@
 <resources>
 <!-- Общее -->
     <string name="app_name">РосЯма</string>
-    <string name="map_key">0IzbmGe1ymUi8twasAFevEv4qJudlgqQlj28KLg</string>
+
+    <!-- Debug: 0IzbmGe1ymUi8twasAFevEv4qJudlgqQlj28KLg -->
+    <!-- Production: 0IzbmGe1ymUhFfOMljquA3K2TMf9njR8OxNuc4w -->
+    <string name="map_key">0IzbmGe1ymUhFfOMljquA3K2TMf9njR8OxNuc4w</string>
 
 <!-- Авторизация -->
     <string name="login">Логин</string>
@@ -20,6 +23,7 @@
     <string name="logout">Выйти</string>
 
 <!-- Редактирование дефекта -->
+    <string name="hole_edit_title">Редактирование дефекта</string>
     <string name="address_label">Адрес дефекта</string>
     <string name="address_prompt">Укажите адрес</string>
     <string name="comment_label">Комментарий</string>
@@ -39,11 +43,13 @@
     <string name="delete_request">Идет удаление дефекта. Пожалуйста подождите ...</string>
     
 <!-- Список фотографий -->
+    <string name="photo_list_title">Фотографии дефекта</string>
     <string name="photo_add">Добавить фото</string>
     <string name="photo_delete">Удалить</string>
     <string name="photo_hint">Фото %d</string>
     
 <!-- Карта -->
+    <string name="map_title">Укажите адрес</string>
     <string name="map_hint">Введите адрес и нажмите на кнопку поиска</string>
     <string name="map_done">Закончить</string>
 
@@ -55,6 +61,7 @@
     <string name="list_request">Идет получение списка дефектов. Пожалуйста подождите ...</string>
     
 <!-- Просмотр дефекта -->
+    <string name="hole_detail_title">Просмотр дефекта</string>
     <string name="pdf_preview">Форма заявления в ГИБДД</string>
     
 <!-- Предпросмотр PDF -->

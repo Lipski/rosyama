@@ -21,14 +21,13 @@
             <TextView
                 android:layout_width="fill_parent" 
                 android:layout_height="wrap_content" 
-                android:textColor="#222"
                 android:text="@string/to_label"
                 />
             <TextView
                 android:id="@+id/to"
+                style="?android:attr/spinnerItemStyle"
                 android:layout_width="fill_parent" 
                 android:layout_height="wrap_content"
-                android:textColor="#000"
                 />
         </LinearLayout>
         <LinearLayout
@@ -42,14 +41,13 @@
             <TextView
                 android:layout_width="fill_parent" 
                 android:layout_height="wrap_content" 
-                android:textColor="#222"
                 android:text="@string/from_label"
                 />
             <TextView
                 android:id="@+id/from"
+                style="?android:attr/spinnerItemStyle"
                 android:layout_width="fill_parent" 
                 android:layout_height="wrap_content"
-                android:textColor="#000"
                 />
         </LinearLayout>
         <LinearLayout
@@ -63,14 +61,13 @@
             <TextView
                 android:layout_width="fill_parent" 
                 android:layout_height="wrap_content" 
-                android:textColor="#222"
                 android:text="@string/postaddress_label"
                 />
             <TextView
                 android:id="@+id/postaddress"
+                style="?android:attr/spinnerItemStyle"
                 android:layout_width="fill_parent" 
                 android:layout_height="wrap_content"
-                android:textColor="#000"
                 />
         </LinearLayout>
         <LinearLayout
@@ -84,14 +81,13 @@
             <TextView
                 android:layout_width="fill_parent" 
                 android:layout_height="wrap_content" 
-                android:textColor="#222"
                 android:text="@string/signature_label"
                 />
             <TextView
                 android:id="@+id/signature"
+                style="?android:attr/spinnerItemStyle"
                 android:layout_width="fill_parent" 
                 android:layout_height="wrap_content"
-                android:textColor="#000"
                 />
         </LinearLayout>
         <Button

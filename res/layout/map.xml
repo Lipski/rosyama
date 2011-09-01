@@ -47,6 +47,6 @@
             android:layout_height="wrap_content"
             android:src="@drawable/marker"
             android:visibility="gone"
-            />             
+            />       
     </RelativeLayout>
 </LinearLayout>
