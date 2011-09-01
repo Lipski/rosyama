@@ -115,7 +115,7 @@ public class Rosyama extends Application implements UpdateListener,
 	/**
 	 * Список дефектов.
 	 */
-	ArrayList<Hole> holes;
+	private ArrayList<Hole> holes;
 
 	/**
 	 * Авторизация.
@@ -465,8 +465,11 @@ public class Rosyama extends Application implements UpdateListener,
 			if (delete != null)
 				form.put("deletefiles", delete.toString());
 			HashMap<String, String> files = new HashMap<String, String>();
-			for (LocalPhoto photo : hole.getPhotosToSend())
-				files.put("photo", photo.getUri().getPath());
+			int index = 0;
+			for (LocalPhoto photo : hole.getPhotosToSend()) {
+				index++;
+				files.put("photo-" + index, photo.getUri().getPath());
+			}
 			String uri;
 			if (hole.getId() == null)
 				uri = XML_HOST + "/add/";
