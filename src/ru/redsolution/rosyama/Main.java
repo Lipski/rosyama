@@ -4,7 +4,9 @@ import ru.redsolution.rosyama.data.Rosyama;
 import ru.redsolution.rosyama.data.UpdateListener;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -45,13 +47,21 @@ public class Main extends Activity implements OnClickListener,
 	 */
 	private Uri requestedUri;
 
+	/**
+	 * Менеджер местоположения.
+	 */
+	private LocationManager locationManager;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		rosyama = (Rosyama) getApplication();
+		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
 		findViewById(R.id.create).setOnClickListener(this);
 		findViewById(R.id.list).setOnClickListener(this);
+
 		requestedUri = null;
 		if (savedInstanceState != null) {
 			String stringUri = savedInstanceState
@@ -85,6 +95,7 @@ public class Main extends Activity implements OnClickListener,
 		super.onActivityResult(requestCode, resultCode, data);
 		switch (requestCode) {
 		case CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE:
+			locationManager.removeUpdates(rosyama);
 			if (resultCode != RESULT_OK)
 				requestedUri = null;
 			else {
@@ -149,6 +160,10 @@ public class Main extends Activity implements OnClickListener,
 		Intent intent;
 		switch (dialog.getDialogId()) {
 		case DIALOG_CREATE_ID:
+			locationManager.requestLocationUpdates(
+					LocationManager.GPS_PROVIDER, 0, 0, rosyama);
+			locationManager.requestLocationUpdates(
+					LocationManager.NETWORK_PROVIDER, 0, 0, rosyama);
 			requestedUri = Rosyama.getNextJpegUri();
 			intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, requestedUri);

@@ -3,6 +3,7 @@ package ru.redsolution.rosyama;
 import ru.redsolution.rosyama.data.Hole;
 import ru.redsolution.rosyama.data.Rosyama;
 import ru.redsolution.rosyama.data.UpdateListener;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -61,6 +62,11 @@ public class Map extends MapActivity implements UpdateListener,
 	 */
 	private MyLocationOverlay myLocationOverlay;
 
+	/**
+	 * Менеджер местоположения.
+	 */
+	private LocationManager locationManager;
+
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
@@ -77,6 +83,8 @@ public class Map extends MapActivity implements UpdateListener,
 			finish();
 			return;
 		}
+
+		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		mapView = (MapView) findViewById(R.id.map);
 		mapView.setBuiltInZoomControls(true);
@@ -133,6 +141,8 @@ public class Map extends MapActivity implements UpdateListener,
 		super.onResume();
 		((Rosyama) getApplication()).setUpdateListener(this);
 		myLocationOverlay.enableCompass();
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,
+				0, rosyama);
 	}
 
 	@Override
@@ -140,6 +150,7 @@ public class Map extends MapActivity implements UpdateListener,
 		super.onPause();
 		((Rosyama) getApplication()).setUpdateListener(null);
 		myLocationOverlay.disableCompass();
+		locationManager.removeUpdates(rosyama);
 	}
 
 	@Override

@@ -23,8 +23,10 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 
@@ -34,7 +36,8 @@ import android.preference.PreferenceManager;
  * @author alexander.ivanov
  * 
  */
-public class Rosyama extends Application implements UpdateListener {
+public class Rosyama extends Application implements UpdateListener,
+		LocationListener {
 	/**
 	 * Писать логи, использовать точку по умолчанию для геокодинга.
 	 */
@@ -971,6 +974,22 @@ public class Rosyama extends Application implements UpdateListener {
 	public void onUpdate() {
 		if (updateListener != null)
 			updateListener.onUpdate();
+	}
+
+	@Override
+	public void onLocationChanged(Location arg0) {
+	}
+
+	@Override
+	public void onProviderDisabled(String arg0) {
+	}
+
+	@Override
+	public void onProviderEnabled(String arg0) {
+	}
+
+	@Override
+	public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
 	}
 
 	private static String getPoint(double value) {
