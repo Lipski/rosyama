@@ -20,7 +20,7 @@ public class TypeAdapter extends BaseAdapter {
 	 * Поддерживаемые типы.
 	 */
 	private static Type[] TYPES = new Type[] { Type.badroad, Type.holeonroad,
-			Type.hatch, Type.rails, Type.policeman, Type.holeinyard, };
+			Type.hatch, Type.rails, Type.holeinyard, };
 
 	/**
 	 * Конструктор layout-а.
