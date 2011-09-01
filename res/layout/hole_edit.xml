@@ -53,7 +53,7 @@
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:text="@string/address_prompt"
+                android:text="@string/address_hint"
                 />
         </RelativeLayout>
         <ru.redsolution.rosyama.NoDefaultSpinner
@@ -76,7 +76,7 @@
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:text="@string/comment_prompt"
+                android:text="@string/comment_hint"
                 />
         </RelativeLayout>
         <Button

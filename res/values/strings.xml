@@ -25,9 +25,9 @@
 <!-- Редактирование дефекта -->
     <string name="hole_edit_title">Редактирование дефекта</string>
     <string name="address_label">Адрес дефекта</string>
-    <string name="address_prompt">Укажите адрес</string>
+    <string name="address_hint">Укажите адрес</string>
     <string name="comment_label">Комментарий</string>
-    <string name="comment_prompt">Укажите комментарий</string>
+    <string name="comment_hint">Укажите комментарий</string>
     <string name="type_prompt">Укажите тип дефекта</string>
     <string name="type_badroad">Разбитая дорога</string>
     <string name="type_holeonroad">Яма на дороге</string>
@@ -50,8 +50,8 @@
     
 <!-- Карта -->
     <string name="map_title">Укажите адрес</string>
-    <string name="map_hint">Введите адрес и нажмите на кнопку поиска</string>
-    <string name="map_done">Закончить</string>
+    <string name="map_hint">Введите адрес и нажмите на кнопку поиска или перетащите маркер и подождите пока определится его адрес</string>
+    <string name="map_done">Сохранить</string>
 
 <!-- Список дефектов -->
     <string name="status_fresh">Новые</string>
@@ -65,14 +65,15 @@
     <string name="pdf_preview">Форма заявления в ГИБДД</string>
     
 <!-- Предпросмотр PDF -->
-    <string name="to_label">Начальнику ГИБДД:</string>
-    <string name="to_prompt">Укажите должность и ФИО в дательном падеже</string>
-    <string name="from_label">Заявитель:</string>
-    <string name="from_prompt">Укажите ваше ФИО в родительном падеже</string>
+    <string name="pdf_previed_title">Форма заявления в ГИБДД</string>
+    <string name="to_label">Кому:</string>
+    <string name="to_hint">Укажите должность и ФИО начальника ГИБДД в дательном падеже</string>
+    <string name="from_label">От кого:</string>
+    <string name="from_hint">Укажите ваше ФИО в родительном падеже</string>
     <string name="postaddress_label">Почтовый адрес заявителя с индексом:</string>
-    <string name="postaddress_prompt">Укажите свой почтовый адрес для переписки и получения уведомлений</string>
+    <string name="postaddress_hint">Укажите свой почтовый адрес для переписки и получения уведомлений</string>
     <string name="signature_label">Подпись:</string>
-    <string name="signature_prompt">Укажите вашу фамилию и инициалы</string>
+    <string name="signature_hint">Укажите вашу фамилию и инициалы</string>
     <string name="pdf">Получить заявление</string>
     <string name="pdf_choose">Варианты отправки</string>
     <string name="pdf_dialog">Проверьте реквизиты и мы загрузим заявление в формате PDF. Вы сможете отправить его, например, на свою электронную почту.</string>

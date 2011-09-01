@@ -90,17 +90,21 @@ public class PDFPreview extends Activity implements OnClickListener,
 		switch (id) {
 		case R.id.to_panel:
 			return new EditDialogBuilder(this, this, R.id.to_panel,
-					getString(R.string.to_label), hole.getTo()).create();
+					getString(R.string.to_label), hole.getTo(),
+					getString(R.string.to_hint)).create();
 		case R.id.from_panel:
 			return new EditDialogBuilder(this, this, R.id.from_panel,
-					getString(R.string.from_label), rosyama.getFrom()).create();
+					getString(R.string.from_label), rosyama.getFrom(),
+					getString(R.string.from_hint)).create();
 		case R.id.postaddress_panel:
 			return new EditDialogBuilder(this, this, R.id.postaddress_panel,
 					getString(R.string.postaddress_label),
-					rosyama.getPostAddress()).create();
+					rosyama.getPostAddress(),
+					getString(R.string.postaddress_hint)).create();
 		case R.id.signature_panel:
 			return new EditDialogBuilder(this, this, R.id.signature_panel,
-					getString(R.string.signature_label), rosyama.getSignature())
+					getString(R.string.signature_label),
+					rosyama.getSignature(), getString(R.string.signature_hint))
 					.create();
 		case R.id.request:
 			return new DialogBuilder(this, this, R.id.request,
@@ -147,13 +151,13 @@ public class PDFPreview extends Activity implements OnClickListener,
 	@Override
 	public void onUpdate() {
 		InterfaceUtilities.setText((TextView) findViewById(R.id.to),
-				hole.getTo(), R.string.to_prompt);
+				hole.getTo(), R.string.to_hint);
 		InterfaceUtilities.setText((TextView) findViewById(R.id.from),
-				rosyama.getFrom(), R.string.from_prompt);
+				rosyama.getFrom(), R.string.from_hint);
 		InterfaceUtilities.setText((TextView) findViewById(R.id.postaddress),
-				rosyama.getPostAddress(), R.string.postaddress_prompt);
+				rosyama.getPostAddress(), R.string.postaddress_hint);
 		InterfaceUtilities.setText((TextView) findViewById(R.id.signature),
-				rosyama.getSignature(), R.string.signature_prompt);
+				rosyama.getSignature(), R.string.signature_hint);
 
 		if (rosyama.getHeadOperation().isInProgress()) {
 			progressDialog.setMessage(getString(R.string.head_request));

@@ -7,11 +7,12 @@ public class EditDialogBuilder extends DialogBuilder {
 	private final EditText editText;
 
 	public EditDialogBuilder(Activity activity, DialogClickListener listener,
-			int dialogId, String message, String value) {
+			int dialogId, String message, String value, String hint) {
 		super(activity, listener, dialogId, message);
 		editText = (EditText) activity.getLayoutInflater().inflate(
 				R.layout.edit_dialog, null);
 		editText.setText(value);
+		editText.setHint(hint);
 		setView(editText);
 	}
 

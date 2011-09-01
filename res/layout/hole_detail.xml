@@ -85,7 +85,7 @@
                     android:layout_marginLeft="8dip"
                     android:singleLine="true"
                     android:textColor="#000"
-                    android:text="@string/address_prompt"
+                    android:text="@string/address_hint"
                     />
             </LinearLayout>
             <LinearLayout
@@ -124,7 +124,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="24dip"
                     android:textColor="#000"
-                    android:text="@string/comment_prompt"
+                    android:text="@string/comment_hint"
                     />
             </LinearLayout>
         </LinearLayout>

@@ -118,8 +118,8 @@ public class HoleEdit extends Activity implements OnClickListener,
 		switch (id) {
 		case R.id.comment_panel:
 			return new EditDialogBuilder(this, this, R.id.comment_panel,
-					getString(R.string.comment_prompt), hole.getComment())
-					.create();
+					getString(R.string.comment_label), hole.getComment(),
+					getString(R.string.comment_hint)).create();
 		default:
 			return null;
 		}
@@ -156,9 +156,9 @@ public class HoleEdit extends Activity implements OnClickListener,
 				photos);
 
 		InterfaceUtilities.setText((TextView) findViewById(R.id.address),
-				hole.getAddress(), R.string.address_prompt);
+				hole.getAddress(), R.string.address_hint);
 		InterfaceUtilities.setText((TextView) findViewById(R.id.comment),
-				hole.getComment(), R.string.comment_prompt);
+				hole.getComment(), R.string.comment_hint);
 
 		Type type = hole.getType();
 		Spinner spinner = (Spinner) findViewById(R.id.type);
