@@ -26,12 +26,22 @@ public class HoleAdapter extends BaseAdapter {
 	/**
 	 * Статус дефектов для отображения.
 	 */
-	private final Status status;
+	private Status status;
 
 	public HoleAdapter(Activity activity, Status status) {
 		rosyama = (Rosyama) activity.getApplication();
 		layoutInflater = activity.getLayoutInflater();
 		this.status = status;
+	}
+
+	/**
+	 * Изменяет статус дефектов для отображения.
+	 * 
+	 * @param status
+	 */
+	public void setStatus(Status status) {
+		this.status = status;
+		notifyDataSetChanged();
 	}
 
 	@Override

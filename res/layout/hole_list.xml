@@ -1,41 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TabHost
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@android:id/tabhost"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:orientation="vertical"
     >
-    <LinearLayout
+    <Gallery
+        android:id="@+id/gallery"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:spacing="20dip"
+        android:unselectedAlpha="0.4"
+        android:background="@drawable/panel"
+        />
+    <ListView
+        android:id="@android:id/list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:orientation="vertical"
-        >
-        <TabWidget
-            android:id="@android:id/tabs"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-        <FrameLayout
-            android:id="@android:id/tabcontent"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:padding="4dip"
-            >
-            <ListView
-                android:id="@+id/fresh"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                />
-            <ListView
-                android:id="@+id/inprogress"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                />
-            <ListView
-                android:id="@+id/fixed"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                />
-        </FrameLayout>
-    </LinearLayout>
-</TabHost>
+        />
+</LinearLayout>

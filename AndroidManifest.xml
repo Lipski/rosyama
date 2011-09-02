@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="ru.redsolution.rosyama"
-      android:versionCode="6"
-      android:versionName="0.2.0">
+      android:versionCode="7"
+      android:versionName="0.2.1">
     <uses-sdk android:minSdkVersion="3" />
     <!-- Не забыть установить Rosyama.DEBUG в false -->
     <application android:name=".data.Rosyama" android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
@@ -20,7 +20,7 @@
         <activity android:name=".HoleEdit" android:label="@string/hole_edit_title" />
         <activity android:name=".PhotoList" android:label="@string/photo_list_title" />
         <activity android:name=".Map" android:label="@string/map_title" android:theme="@android:style/Theme.NoTitleBar" />
-        <activity android:name=".HoleList" android:label="@string/app_name" android:theme="@android:style/Theme.NoTitleBar" />
+        <activity android:name=".HoleList" android:label="@string/hole_list_title" />
         <activity android:name=".HoleDetail" android:label="@string/hole_detail_title" />
         <activity android:name=".PDFPreview" android:label="@string/pdf_previed_title" />
         <uses-library android:name="com.google.android.maps" />

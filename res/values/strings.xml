@@ -54,9 +54,13 @@
     <string name="map_done">Сохранить</string>
 
 <!-- Список дефектов -->
+    <string name="hole_list_title">Список дефектов</string>
     <string name="status_fresh">Новые</string>
-    <string name="status_inprogress">В ожидании</string>
+    <string name="status_inprogress">В ГИБДД</string>
     <string name="status_fixed">Устраненные</string>
+    <string name="status_achtung">Просроченные</string>
+    <string name="status_prosecutor">В прокуратуре</string>
+    <string name="status_gibddre">С ответом</string>
 
     <string name="list_request">Идет получение списка дефектов. Пожалуйста подождите ...</string>
     

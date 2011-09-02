@@ -4,9 +4,9 @@ import ru.redsolution.rosyama.data.Hole;
 import ru.redsolution.rosyama.data.Rosyama;
 import ru.redsolution.rosyama.data.Status;
 import ru.redsolution.rosyama.data.UpdateListener;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.app.TabActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -20,11 +20,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.Gallery;
 import android.widget.ListView;
-import android.widget.TabHost;
 
-public class HoleList extends TabActivity implements OnItemClickListener,
-		UpdateListener, OnCancelListener, DialogClickListener {
+public class HoleList extends Activity implements OnItemClickListener,
+		UpdateListener, OnCancelListener, DialogClickListener,
+		OnItemSelectedListener {
 	/**
 	 * Запрошенный URL.
 	 */
@@ -65,9 +67,10 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 	 */
 	private ProgressDialog progressDialog;
 
-	private ListView freshListView;
-	private ListView inprogressListView;
-	private ListView fixedListView;
+	/**
+	 * Адаптер для отображения дефектов.
+	 */
+	private HoleAdapter holeAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -84,23 +87,15 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 				requestedUri = Uri.parse(stringUri);
 		}
 
-		addTabSpec("fresh", R.string.status_fresh,
-				android.R.drawable.ic_menu_directions, R.id.fresh);
-		freshListView = (ListView) findViewById(R.id.fresh);
-		freshListView.setAdapter(new HoleAdapter(this, Status.fresh));
-		freshListView.setOnItemClickListener(this);
+		holeAdapter = new HoleAdapter(this, Status.fixed);
 
-		addTabSpec("inprogress", R.string.status_inprogress,
-				android.R.drawable.ic_menu_today, R.id.inprogress);
-		inprogressListView = (ListView) findViewById(R.id.inprogress);
-		inprogressListView.setAdapter(new HoleAdapter(this, Status.inprogress));
-		inprogressListView.setOnItemClickListener(this);
+		ListView listView = (ListView) findViewById(android.R.id.list);
+		listView.setAdapter(holeAdapter);
+		listView.setOnItemClickListener(this);
 
-		addTabSpec("fixed", R.string.status_fixed,
-				android.R.drawable.ic_menu_agenda, R.id.fixed);
-		fixedListView = (ListView) findViewById(R.id.fixed);
-		fixedListView.setAdapter(new HoleAdapter(this, Status.fixed));
-		fixedListView.setOnItemClickListener(this);
+		Gallery gallery = (Gallery) findViewById(R.id.gallery);
+		gallery.setAdapter(new StatusAdapter(this));
+		gallery.setOnItemSelectedListener(this);
 
 		if (savedInstanceState == null) {
 			rosyama.getListOperation().execute();
@@ -115,31 +110,14 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 	protected void onResume() {
 		super.onResume();
 		((Rosyama) getApplication()).setUpdateListener(this);
+		holeAdapter.setStatus((Status) ((Gallery) findViewById(R.id.gallery))
+				.getSelectedItem());
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 		((Rosyama) getApplication()).setUpdateListener(null);
-	}
-
-	/**
-	 * Добавляет новый таб.
-	 * 
-	 * @param tag
-	 *            Тег.
-	 * @param name
-	 *            Имя.
-	 * @param content
-	 *            Идентификатор закладки.
-	 */
-	private void addTabSpec(String tag, int name, int drawable, int content) {
-		TabHost tabHost = getTabHost();
-		TabHost.TabSpec tabSpec = tabHost.newTabSpec(tag);
-		tabSpec.setIndicator(getString(name));
-		// TODO: , getResources().getDrawable(drawable));
-		tabSpec.setContent(content);
-		tabHost.addTab(tabSpec);
 	}
 
 	@Override
@@ -237,9 +215,7 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 
 	@Override
 	public void onUpdate() {
-		((HoleAdapter) freshListView.getAdapter()).notifyDataSetChanged();
-		((HoleAdapter) inprogressListView.getAdapter()).notifyDataSetChanged();
-		((HoleAdapter) fixedListView.getAdapter()).notifyDataSetChanged();
+		holeAdapter.notifyDataSetChanged();
 
 		if (rosyama.getListOperation().isInProgress()) {
 			progressDialog.setMessage(getString(R.string.list_request));
@@ -251,5 +227,16 @@ public class HoleList extends TabActivity implements OnItemClickListener,
 	@Override
 	public void onCancel(DialogInterface dialog) {
 		finish();
+	}
+
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int position,
+			long id) {
+		Status status = (Status) parent.getAdapter().getItem(position);
+		holeAdapter.setStatus(status);
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> parent) {
 	}
 }
