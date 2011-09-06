@@ -92,7 +92,7 @@
     <string name="about_title">О программе</string>
     <string name="about_copyright">© Redsolution LTD, 2010-2011</string>
     <string name="about_site">http://www.redsolution.ru</string>
-    <string name="about_source_title">Открытый исходный код:</string>
+    <string name="about_source_title"><u>Открытый исходный код</u></string>
     <string name="about_source_address">http://github.com/redsolution/rosyama</string>
 
 <!-- Ошибки -->    
