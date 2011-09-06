@@ -88,6 +88,13 @@
     <string name="head_request">Идет поиск главы ГИБДД. Пожалуйста подождите ...</string>
     <string name="pdf_request">Идет получение заявления. Пожалуйста подождите ...</string>
 
+<!-- О программе -->
+    <string name="about_title">О программе</string>
+    <string name="about_copyright">© Redsolution LTD, 2010-2011</string>
+    <string name="about_site">http://www.redsolution.ru</string>
+    <string name="about_source_title">Открытый исходный код:</string>
+    <string name="about_source_address">http://github.com/redsolution/rosyama</string>
+
 <!-- Ошибки -->    
     <string name="connection_fail">Ошибка подключения.</string>
     <string name="io_fail">Ошибка передачи данных.</string>
@@ -102,7 +109,7 @@
     <string name="pdf_fail">Не удалось сформировать заявление. Попробуйте зайти через сайт.</string>
     <string name="cannot_add_defect">Не удалось отправить дефект: %s.</string>
     <string name="server_error">Сервер сообщает об ошибке: %s.</string>
-    
+
 <!-- Настройки -->    
     <string name="login_key">login</string>
     <string name="password_key">password</string>

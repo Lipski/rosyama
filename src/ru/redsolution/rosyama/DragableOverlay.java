@@ -32,7 +32,7 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.OverlayItem;
 
 /**
- * Resource:
+ * За основу взят исходный код:
  * https://github.com/commonsguy/cw-advandroid/tree/master/Maps/NooYawkTouch/
  */
 public class DragableOverlay extends ItemizedOverlay<OverlayItem> {

@@ -1,12 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/background"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:gravity="center"
+    android:padding="4dip"
+    android:background="@drawable/background"
     >
-    <TextView
+    <LinearLayout
+        android:id="@+id/dot"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/app_name"
+        android:layout_marginTop="2dip"
+        android:background="@drawable/dot"
+        />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:gravity="center">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dip"
+            android:src="@drawable/icon"
+            />
+        <TextView
+            android:text="@string/app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:paddingTop="8dip"
+            android:paddingBottom="8dip"
+            android:textColor="?android:attr/textColorPrimary"
+            />
+        <TextView
+            android:text="@string/about_site"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="20dip"
+            android:textColor="?android:attr/textColorPrimary"
+            android:autoLink="all"
+            android:gravity="center"
+            android:textColorLink="#0099FF"
+            />
+        <TextView
+            android:text="@string/about_source_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dip"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:gravity="center"
+            android:textColorLink="#0099FF"
+            />
+        <TextView
+            android:text="@string/about_source_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dip"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:gravity="center"
+            android:textColorLink="#0099FF"
+            />
+    </LinearLayout>
+    <TextView
+        android:text="@string/about_copyright"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="4dip"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorLink="#0099FF"
+        />
+    <LinearLayout
+        android:id="@+id/dot2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dip"
+        android:layout_marginBottom="2dip"
+        android:background="@drawable/dot"
+        />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/redsolution_logo"
+        android:paddingBottom="4dip"
         />
 </LinearLayout>

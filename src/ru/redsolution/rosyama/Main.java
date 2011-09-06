@@ -38,6 +38,11 @@ public class Main extends Activity implements OnClickListener,
 	private static final int OPTION_MENU_LOGOUT_ID = 0;
 
 	/**
+	 * Выход из текущей сессии.
+	 */
+	private static final int OPTION_MENU_ABOUT_ID = 1;
+
+	/**
 	 * Приложение.
 	 */
 	private Rosyama rosyama;
@@ -116,6 +121,8 @@ public class Main extends Activity implements OnClickListener,
 		super.onCreateOptionsMenu(menu);
 		menu.add(0, OPTION_MENU_LOGOUT_ID, 0, getString(R.string.logout))
 				.setIcon(R.drawable.ic_menu_login);
+		menu.add(0, OPTION_MENU_ABOUT_ID, 0, getString(R.string.about_title))
+				.setIcon(android.R.drawable.ic_menu_info_details);
 		return true;
 	}
 
@@ -125,6 +132,10 @@ public class Main extends Activity implements OnClickListener,
 		switch (item.getItemId()) {
 		case OPTION_MENU_LOGOUT_ID:
 			rosyama.logout();
+			return true;
+		case OPTION_MENU_ABOUT_ID:
+			Intent intent = new Intent(this, About.class);
+			startActivity(intent);
 			return true;
 		}
 		return false;
